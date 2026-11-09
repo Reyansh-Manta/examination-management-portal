@@ -10,6 +10,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     is_approved = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
 
     def __init__(self, name: str, email: str, password_hash: str, role: str):
         self.name = name
@@ -24,6 +25,10 @@ class Course(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(500))
 
+    def __init__(self, name: str, description: str = None):
+        self.name = name
+        self.description = description
+
 
 # 3. Examination Model
 class Examination(db.Model):
@@ -34,7 +39,25 @@ class Examination(db.Model):
         db.Integer, db.ForeignKey("course.id"), nullable=False
     )
 
+    # Examination status
+    status = db.Column(db.String(30), default="Draft")
+
+    # Examiner slot creation period
+    slot_creation_start = db.Column(db.String(30))
+    slot_creation_end = db.Column(db.String(30))
+
+    # Student booking period
+    booking_start = db.Column(db.String(30))
+    booking_end = db.Column(db.String(30))
+
+    slot_creation_open = db.Column(db.Boolean, default=False)
+    booking_open = db.Column(db.Boolean, default=False)
+
     course = db.relationship("Course", backref="examinations")
+
+    def __init__(self, name: str, course_id: int = None):
+        self.name = name
+        self.course_id = course_id
 
 
 # 4. Examination Rubric Model
@@ -49,6 +72,11 @@ class ExaminationRubric(db.Model):
     marks = db.Column(db.Integer, nullable=False)
 
     examination = db.relationship("Examination", backref="rubrics")
+
+    def __init__(self, examination_id: int, criterion: str = None, marks: int = None):
+        self.examination_id = examination_id
+        self.criterion = criterion
+        self.marks = marks
 
 
 # 5. Examination Slot Model
