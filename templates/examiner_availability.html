@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Examiner Availability – Exam Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 800px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-calendar-x me-2"></i>Mark Unavailability</h2>
+            <p class="text-muted mb-0">Indicate dates when you are unable to conduct viva examinations. Administrators will consider this when assigning slots.</p>
+        </div>
+        <a href="{{ url_for('examiner_slots') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-calendar-plus me-1"></i> Manage Slots
+        </a>
+    </div>
+
+    <!-- Add Unavailable Date Form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add Unavailable Date</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Date</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Reason (Optional)</label>
+                        <input type="text" name="reason" class="form-control" placeholder="e.g., Academic Conference, Leave">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-calendar-x me-1"></i> Mark as Unavailable
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Current Unavailability List -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>My Marked Unavailable Dates</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Reason</th>
+                            <th style="width: 120px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in unavailabilities %}
+                        <tr>
+                            <td class="fw-bold"><i class="bi bi-calendar-date text-danger me-2"></i>{{ item.date }}</td>
+                            <td>{{ item.reason or "No specific reason provided" }}</td>
+                            <td class="text-center">
+                                <form method="POST" action="{{ url_for('delete_examiner_unavailability', unavail_id=item.id) }}" onsubmit="return confirm('Remove this unavailable date?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">You have not marked any unavailable dates. You are listed as available for scheduling.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

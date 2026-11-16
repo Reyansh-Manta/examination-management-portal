@@ -1,15 +1,16 @@
-from sqlalchemy.sql.functions import user
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, jsonify
 from database import db
-from models import User
+from models import (
+    User, Course, Examination, ExaminationSlot, Booking,
+    ExaminationRubric, Evaluation, ExaminerProfile, EvaluationMark,
+    StudentProfile, Resource, ExaminerUnavailability, Notification, Announcement
+)
 from werkzeug.security import generate_password_hash, check_password_hash
-import models
 from functools import wraps
-from flask import abort
-from models import User, Course, Examination, ExaminationSlot, Booking, ExaminationRubric, Evaluation, ExaminerProfile, EvaluationMark
-from flask import render_template, request, redirect, url_for, flash
-from datetime import date
-from sqlalchemy import or_
+from datetime import date, datetime
+from sqlalchemy import or_, func
+import csv
+import io
 
 app = Flask(__name__)
 
@@ -25,7 +26,6 @@ with app.app_context():
 # Function to check user role
 def role_required(required_role):
     
-
     def decorator(function):
 
         @wraps(function)
@@ -59,6 +59,96 @@ def role_required(required_role):
 
     return decorator
 
+
+# Helper to send in-app notification
+def create_notification(user_id, title, message, category="info"):
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    notif = Notification(
+        user_id=user_id,
+        title=title,
+        message=message,
+        category=category,
+        created_at=now_str
+    )
+    db.session.add(notif)
+
+
+# Context processor to inject unread notification count
+@app.context_processor
+def inject_global_data():
+    unread_count = 0
+    if "user_id" in session:
+        unread_count = Notification.query.filter_by(
+            user_id=session["user_id"],
+            is_read=False
+        ).count()
+    return {"unread_notifications_count": unread_count}
+
+
+def update_examination_status(examination):
+    today = date.today().isoformat()
+    now = datetime.now().strftime("%Y-%m-%dT%H:%M")
+
+    if examination.status == "Completed":
+        return
+
+    # Automatic start & progression based on timelines:
+    # 1. Slot creation automatic start / progression
+    if examination.slot_creation_start and examination.slot_creation_end:
+        if examination.slot_creation_start <= now <= examination.slot_creation_end:
+            examination.slot_creation_open = True
+            examination.status = "Slot Creation"
+        elif now > examination.slot_creation_end:
+            examination.slot_creation_open = False
+
+    # 2. Student booking automatic start / progression (only after slot creation ends)
+    if examination.booking_start and examination.booking_end:
+        if examination.booking_start <= now <= examination.booking_end:
+            examination.booking_open = True
+            examination.status = "Booking Open"
+        elif now > examination.booking_end:
+            examination.booking_open = False
+            examination.status = "Closed"
+
+    # Fallback to manual flag statuses if set
+    if examination.booking_open:
+        examination.status = "Booking Open"
+    elif examination.slot_creation_open:
+        examination.status = "Slot Creation"
+
+    # Check whether examination has slots and all slots/bookings have completed
+    if examination.slots:
+        all_passed = True
+        for slot in examination.slots:
+            if slot.date >= today:
+                all_passed = False
+                break
+            for booking in slot.bookings:
+                if booking.status not in ["Completed", "Cancelled"]:
+                    all_passed = False
+                    break
+        if all_passed:
+            examination.status = "Completed"
+            examination.booking_open = False
+            examination.slot_creation_open = False
+
+    db.session.commit()
+
+# Root Route (redirects to the appropriate dashboard if logged in, or login if not)
+@app.route("/")
+def index():
+    if "user_id" in session:
+        user = User.query.get(session["user_id"])
+        if user and user.is_active:
+            if user.role == "Admin":
+                return redirect(url_for("admin_dashboard"))
+            elif user.role == "Examiner":
+                if user.is_approved:
+                    return redirect(url_for("examiner_dashboard"))
+            elif user.role == "Student":
+                return redirect(url_for("student_dashboard"))
+
+    return redirect(url_for("login"))
 
 # Student Registration
 @app.route("/register", methods=["GET", "POST"])
@@ -168,6 +258,7 @@ def login():
 
             # Store user information in session
             session["user_id"] = user.id
+            session["role"] = user.role
             session["user_role"] = user.role
             session["user_name"] = user.name
 
@@ -223,6 +314,24 @@ def admin_dashboard():
         is_active=False
     ).all()
 
+    # Examiner progress and average grading tracking
+    examiner_stats = []
+    for ex in approved_examiners:
+        evals = Evaluation.query.filter_by(examiner_id=ex.id, status="Completed").all()
+        scores = [e.marks for e in evals if e.marks is not None]
+        avg_grade = round(sum(scores) / len(scores), 1) if scores else None
+        total_evals = len(scores)
+        total_slots_created = ExaminationSlot.query.filter_by(examiner_id=ex.id).count()
+        examiner_stats.append({
+            "examiner": ex,
+            "avg_grade": avg_grade,
+            "total_evals": total_evals,
+            "total_slots": total_slots_created
+        })
+
+    # Recent announcements
+    announcements = Announcement.query.order_by(Announcement.id.desc()).limit(5).all()
+
     return render_template(
         "admin_dashboard.html",
         total_courses=total_courses,
@@ -233,7 +342,9 @@ def admin_dashboard():
         total_bookings=total_bookings,
         pending_examiners=pending_examiners,
         approved_examiners=approved_examiners,
-        inactive_examiners=inactive_examiners
+        inactive_examiners=inactive_examiners,
+        examiner_stats=examiner_stats,
+        announcements=announcements
     )
 
 
@@ -291,13 +402,31 @@ def examiner_dashboard():
             if evaluation is None or evaluation.status == "Pending":
                 pending_evaluations += 1
 
+    # Evaluations done by this examiner
+    evaluations = Evaluation.query.filter_by(
+        examiner_id=examiner_id,
+        status="Completed"
+    ).all()
+
+    scores = [e.marks for e in evaluations if e.marks is not None]
+    avg_grading = round(sum(scores) / len(scores), 1) if scores else 0
+    total_evaluated = len(scores)
+
+    # Announcements for examiner
+    announcements = Announcement.query.filter(
+        or_(Announcement.target_role == "All", Announcement.target_role == "Examiner")
+    ).order_by(Announcement.id.desc()).limit(5).all()
+
     return render_template(
         "examiner_dashboard.html",
         examiner=User.query.get(examiner_id),
         total_examinations=total_examinations,
         total_slots=total_slots,
         total_bookings=total_bookings,
-        pending_evaluations=pending_evaluations
+        pending_evaluations=pending_evaluations,
+        avg_grading=avg_grading,
+        total_evaluated=total_evaluated,
+        announcements=announcements
     )
 
 
@@ -310,32 +439,47 @@ def student_dashboard():
 
     student_id = session["user_id"]
 
-    # Get all bookings of this student
+    # Get all active bookings of this student
     bookings = Booking.query.filter_by(
         student_id=student_id,
         status="Booked"
     ).all()
 
-    # Count total bookings
     total_bookings = len(bookings)
-
-    # Count upcoming examinations
-    upcoming_examinations = 0
-
-    for booking in bookings:
-        upcoming_examinations += 1
-
-    # Count completed examinations
+    upcoming_examinations = len([b for b in bookings if b.slot.date >= date.today().isoformat()])
     completed_examinations = Booking.query.filter_by(
         student_id=student_id,
         status="Completed"
     ).count()
 
+    # Current & previous evaluations for this student
+    evaluations = Evaluation.query.join(
+        Booking,
+        Evaluation.booking_id == Booking.id
+    ).filter(
+        Booking.student_id == student_id,
+        Evaluation.status == "Completed"
+    ).all()
+
+    # Announcements for students
+    announcements = Announcement.query.filter(
+        or_(Announcement.target_role == "All", Announcement.target_role == "Student")
+    ).order_by(Announcement.id.desc()).limit(5).all()
+
+    # Performance stats
+    scores = [e.marks for e in evaluations if e.marks is not None]
+    avg_score = round(sum(scores) / len(scores), 1) if scores else 0
+    highest_score = max(scores) if scores else 0
+
     return render_template(
         "student_dashboard.html",
         total_bookings=total_bookings,
         upcoming_examinations=upcoming_examinations,
-        completed_examinations=completed_examinations
+        completed_examinations=completed_examinations,
+        evaluations=evaluations,
+        announcements=announcements,
+        avg_score=avg_score,
+        highest_score=highest_score
     )
 
 
@@ -431,6 +575,21 @@ def add_course():
         )
 
         db.session.add(new_course)
+        db.session.flush()
+
+        # Optional resource added during course creation
+        resource_title = request.form.get("resource_title")
+        resource_url = request.form.get("resource_url")
+        if resource_title and resource_url:
+            res = Resource(
+                title=resource_title.strip(),
+                url=resource_url.strip(),
+                description=f"Course Material for {new_course.name}",
+                course_id=new_course.id,
+                created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
+            )
+            db.session.add(res)
+
         db.session.commit()
 
         flash("Course added successfully.")
@@ -485,6 +644,8 @@ def examinations():
     search = request.args.get("search", "").strip().lower()
 
     all_examinations = Examination.query.all()
+    for examination in all_examinations:
+        update_examination_status(examination)
 
     if search:
         all_examinations = [
@@ -527,6 +688,22 @@ def add_examination():
         )
 
         db.session.add(new_examination)
+        db.session.flush()
+
+        # Optional study resource added during exam creation
+        resource_title = request.form.get("resource_title")
+        resource_url = request.form.get("resource_url")
+        if resource_title and resource_url:
+            res = Resource(
+                title=resource_title.strip(),
+                url=resource_url.strip(),
+                description=f"Study Resource for {new_examination.name}",
+                course_id=course_id,
+                examination_id=new_examination.id,
+                created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
+            )
+            db.session.add(res)
+
         db.session.commit()
 
         flash("Examination added successfully.")
@@ -740,6 +917,14 @@ def examination_settings(examination_id):
                 examination_id=examination.id
             ))
 
+        # Enforce that slot booking can only start AFTER slot creation ends
+        if slot_end and booking_start and booking_start < slot_end:
+            flash("Booking can only start AFTER slot creation period ends.", "danger")
+            return redirect(url_for(
+                "examination_settings",
+                examination_id=examination.id
+            ))
+
         examination.slot_creation_start = slot_start or None
         examination.slot_creation_end = slot_end or None
         examination.booking_start = booking_start or None
@@ -775,6 +960,15 @@ def toggle_slot_creation(examination_id):
 
     examination.slot_creation_open = not examination.slot_creation_open
 
+    if examination.slot_creation_open:
+        examination.status = "Slot Creation"
+
+    elif examination.booking_open:
+        examination.status = "Booking Open"
+
+    else:
+        examination.status = "Draft"
+
     db.session.commit()
 
     flash("Slot creation setting updated.")
@@ -800,6 +994,12 @@ def toggle_booking(examination_id):
             ))
 
     examination.booking_open = not examination.booking_open
+
+    if examination.booking_open:
+        examination.status = "Booking Open"
+
+    else:
+        examination.status = "Closed"
 
     db.session.commit()
 
@@ -832,10 +1032,16 @@ def admin_slots():
         is_active=True
     ).all()
 
+    # Load unavailabilities to warn admin if an examiner is unavailable on this slot's date
+    unavailabilities = ExaminerUnavailability.query.all()
+    # Map (examiner_id, date) -> reason
+    unavail_map = {f"{u.examiner_id}_{u.date}": u.reason or "Unavailable" for u in unavailabilities}
+
     return render_template(
         "admin_slots.html",
         slots=all_slots,
         examiners=approved_examiners,
+        unavail_map=unavail_map,
         search=search
     )
 
@@ -921,19 +1127,45 @@ def reschedule_booking(booking_id):
                 url_for("reschedule_booking", booking_id=booking.id)
             )
 
-        # Prevent duplicate bookings by the same student
-        existing_booking = Booking.query.filter_by(
-            student_id=booking.student_id,
-            slot_id=new_slot.id
+        # Only active bookings can be rescheduled
+        if booking.status != "Booked":
+            flash("Only active bookings can be rescheduled.")
+            return redirect(url_for("admin_bookings"))
+
+        # Prevent duplicate bookings for the same examination
+        existing_booking = Booking.query.join(
+            ExaminationSlot,
+            Booking.slot_id == ExaminationSlot.id
+        ).filter(
+            Booking.student_id == booking.student_id,
+            Booking.status == "Booked",
+            ExaminationSlot.examination_id == booking.slot.examination_id,
+            Booking.id != booking.id
         ).first()
 
         if existing_booking:
-            flash("This student already has a booking in that slot.")
-            return redirect(
-                url_for("reschedule_booking", booking_id=booking.id)
-            )
+            flash("Student already has a booking for this examination.")
+            return redirect(url_for("reschedule_booking", booking_id=booking.id))
+
+        # Check destination slot capacity
+        booked_count = Booking.query.filter_by(
+            slot_id=new_slot.id,
+            status="Booked"
+        ).count()
+
+        if booked_count >= new_slot.capacity:
+            flash("The selected slot is already full.")
+            return redirect(url_for("reschedule_booking", booking_id=booking.id))
+
 
         booking.slot_id = new_slot.id
+
+        create_notification(
+            user_id=booking.student_id,
+            title="Booking Rescheduled",
+            message=f"Your booking for {booking.slot.examination.name} was rescheduled to {new_slot.date} at {new_slot.time} (Examiner: {new_slot.examiner.name}).",
+            category="info"
+        )
 
         db.session.commit()
 
@@ -986,6 +1218,11 @@ def evaluate_student(booking_id):
     examiner_id = session["user_id"]
 
     booking = Booking.query.get_or_404(booking_id)
+
+    # Only booked students can be evaluated
+    if booking.status != "Booked":
+        flash("This booking cannot be evaluated.")
+        return redirect(url_for("examiner_bookings"))
 
     # Check whether this examiner owns the slot
     if booking.slot.examiner_id != examiner_id:
@@ -1043,6 +1280,8 @@ def evaluate_student(booking_id):
         evaluation.marks = total_marks
         evaluation.remarks = remarks
         evaluation.status = "Completed"
+        # Mark booking as completed
+        booking.status = "Completed"
 
         # Save individual rubric marks
         for rubric, marks in marks_list:
@@ -1065,6 +1304,14 @@ def evaluate_student(booking_id):
             else:
 
                 rubric_mark.marks = marks
+
+        # Notify student about published result
+        create_notification(
+            user_id=booking.student_id,
+            title="Result Published",
+            message=f"Your evaluation for {booking.slot.examination.name} is complete. Total Score: {total_marks}. Check your Results section for detailed rubric scores.",
+            category="success"
+        )
 
         db.session.commit()
 
@@ -1126,7 +1373,7 @@ def examiner_slots():
     if request.method == "POST":
 
         examination_id = request.form.get("examination_id", type=int)
-        date = request.form.get("date")
+        slot_date = request.form.get("date")
         time = request.form.get("time")
 
         examination = Examination.query.get(examination_id)
@@ -1135,18 +1382,36 @@ def examiner_slots():
             flash("Please select a valid examination.")
             return redirect(url_for("examiner_slots"))
 
+                
         if not examination.slot_creation_open:
             flash("Slot creation is currently closed.")
             return redirect(url_for("examiner_slots"))
 
-        if not date or not time:
+        now = datetime.now().strftime("%Y-%m-%dT%H:%M")
+
+        if not examination.slot_creation_start or not examination.slot_creation_end:
+            flash("Slot creation dates are not configured.")
+            return redirect(url_for("examiner_slots"))
+
+        if now < examination.slot_creation_start or now > examination.slot_creation_end:
+            flash("You can create slots only during the allowed period.")
+            return redirect(url_for("examiner_slots"))
+
+
+        if not slot_date or not time:
             flash("Please enter both date and time.")
+            return redirect(url_for("examiner_slots"))
+
+        # Prevent creating slots in the past
+        slot_datetime = f"{slot_date}T{time}"
+        if slot_datetime < now:
+            flash("You cannot create a slot in the past.")
             return redirect(url_for("examiner_slots"))
 
         new_slot = ExaminationSlot(
             examination_id=examination_id,
             examiner_id=examiner_id,
-            date=date,
+            date=slot_date,
             time=time
         )
 
@@ -1195,14 +1460,20 @@ def edit_examiner_slot(slot_id):
 
     if request.method == "POST":
 
-        date = request.form.get("date")
+        slot_date = request.form.get("date")
         time = request.form.get("time")
 
-        if not date or not time:
+        if not slot_date or not time:
             flash("Please enter both date and time.")
             return redirect(url_for("edit_examiner_slot", slot_id=slot.id))
 
-        slot.date = date
+        now = datetime.now().strftime("%Y-%m-%dT%H:%M")
+        slot_datetime = f"{slot_date}T{time}"
+        if slot_datetime < now:
+            flash("You cannot set a slot date and time in the past.")
+            return redirect(url_for("edit_examiner_slot", slot_id=slot.id))
+
+        slot.date = slot_date
         slot.time = time
 
         db.session.commit()
@@ -1306,11 +1577,20 @@ def student_profile():
     student_id = session["user_id"]
 
     student = User.query.get_or_404(student_id)
+    profile = StudentProfile.query.filter_by(user_id=student_id).first()
+    if profile is None:
+        profile = StudentProfile(user_id=student_id)
+        db.session.add(profile)
+        db.session.commit()
 
     if request.method == "POST":
 
         name = request.form.get("name")
         email = request.form.get("email")
+        roll_number = request.form.get("roll_number")
+        department = request.form.get("department")
+        year = request.form.get("year")
+        phone = request.form.get("phone")
 
         if not name or not name.strip():
             flash("Name is required.")
@@ -1332,6 +1612,10 @@ def student_profile():
 
         student.name = name.strip()
         student.email = email.strip()
+        profile.roll_number = roll_number.strip() if roll_number else None
+        profile.department = department.strip() if department else None
+        profile.year = year.strip() if year else None
+        profile.phone = phone.strip() if phone else None
 
         db.session.commit()
 
@@ -1344,7 +1628,8 @@ def student_profile():
 
     return render_template(
         "student_profile.html",
-        student=student
+        student=student,
+        profile=profile
     )
 
 
@@ -1482,6 +1767,15 @@ def student_book_slot(slot_id):
     db.session.add(booking)
     db.session.commit()
 
+    # Create confirmation notification for the student
+    create_notification(
+        user_id=student_id,
+        title="Booking Confirmed",
+        message=f"You successfully booked {slot.examination.name} on {slot.date} at {slot.time} (Examiner: {slot.examiner.name}).",
+        category="success"
+    )
+    db.session.commit()
+
     flash("Your examination slot has been booked successfully.", "success")
 
     return redirect(url_for("student_bookings"))
@@ -1528,6 +1822,12 @@ def student_cancel_booking(booking_id):
 
     # Cancel the booking
     booking.status = "Cancelled"
+    create_notification(
+        user_id=booking.student_id,
+        title="Booking Cancelled",
+        message=f"Your booking for {booking.slot.examination.name} on {booking.slot.date} has been cancelled.",
+        category="warning"
+    )
     db.session.commit()
 
     flash("Your booking has been cancelled successfully.", "success")
@@ -1595,6 +1895,541 @@ def student_results():
         "student_results.html",
         evaluations=evaluations
     )
+
+
+# -------------------------------------------------------------
+# New Feature Routes: Calendar, Resources, Analytics, Announcements,
+# Notifications, CSV Import, Examiner Availability & Report
+# -------------------------------------------------------------
+
+# Student Monthly Calendar View
+@app.route("/student/calendar")
+@role_required("Student")
+def student_calendar():
+    student_id = session["user_id"]
+
+    # Student's active bookings
+    my_bookings = Booking.query.filter_by(
+        student_id=student_id,
+        status="Booked"
+    ).all()
+
+    # All upcoming examinations with available slots
+    upcoming_slots = ExaminationSlot.query.join(
+        Examination
+    ).filter(
+        ExaminationSlot.date >= date.today().isoformat()
+    ).all()
+
+    # Build calendar event payloads
+    calendar_events = []
+    for b in my_bookings:
+        calendar_events.append({
+            "title": f"My Exam: {b.slot.examination.name}",
+            "date": b.slot.date,
+            "time": b.slot.time,
+            "examiner": b.slot.examiner.name,
+            "is_booked": True,
+            "status": b.status
+        })
+
+    for s in upcoming_slots:
+        # Avoid duplicate labels if user booked this slot
+        if not any(b.slot_id == s.id for b in my_bookings):
+            calendar_events.append({
+                "title": f"Slot: {s.examination.name}",
+                "date": s.date,
+                "time": s.time,
+                "examiner": s.examiner.name,
+                "is_booked": False,
+                "status": "Available"
+            })
+
+    return render_template(
+        "student_calendar.html",
+        calendar_events=calendar_events
+    )
+
+
+# Downloadable / Printable Result Report
+@app.route("/student/result/<int:evaluation_id>/report")
+@role_required("Student")
+def download_result_report(evaluation_id):
+    student_id = session["user_id"]
+    evaluation = Evaluation.query.get_or_404(evaluation_id)
+
+    # Validate that this evaluation belongs to the requesting student
+    if evaluation.booking.student_id != student_id:
+        abort(403)
+
+    student = evaluation.booking.student
+    examination = evaluation.booking.slot.examination
+    rubric_marks = EvaluationMark.query.filter_by(evaluation_id=evaluation.id).all()
+    total_rubric_possible = sum(r.rubric.marks for r in rubric_marks if r.rubric)
+
+    return render_template(
+        "result_report.html",
+        evaluation=evaluation,
+        student=student,
+        examination=examination,
+        rubric_marks=rubric_marks,
+        total_rubric_possible=total_rubric_possible,
+        generated_at=datetime.now().strftime("%d %B %Y, %H:%M")
+    )
+
+
+# Notification Center for All Roles
+@app.route("/notifications")
+def notifications_view():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    notifications = Notification.query.filter_by(user_id=user_id).order_by(Notification.id.desc()).all()
+
+    # Mark all as read
+    for n in notifications:
+        n.is_read = True
+    db.session.commit()
+
+    return render_template(
+        "notifications.html",
+        notifications=notifications
+    )
+
+
+# Announcement Management (Admin can publish, delete; viewable by all)
+@app.route("/announcements", methods=["GET", "POST"])
+def announcements_view():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    role = session.get("role")
+
+    if request.method == "POST":
+        if role != "Admin":
+            abort(403)
+
+        title = request.form.get("title")
+        content = request.form.get("content")
+        target_role = request.form.get("target_role", "All")
+
+        if not title or not content:
+            flash("Announcement title and content are required.", "danger")
+            return redirect(url_for("announcements_view"))
+
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        announcement = Announcement(
+            title=title.strip(),
+            content=content.strip(),
+            target_role=target_role,
+            created_by=session["user_id"],
+            created_at=now_str
+        )
+        db.session.add(announcement)
+        db.session.commit()
+
+        # Notify relevant users
+        target_users = []
+        if target_role == "All":
+            target_users = User.query.filter(User.role != "Admin").all()
+        else:
+            target_users = User.query.filter_by(role=target_role).all()
+
+        for u in target_users:
+            create_notification(
+                user_id=u.id,
+                title=f"Announcement: {title.strip()}",
+                message=content.strip()[:180] + "...",
+                category="info"
+            )
+        db.session.commit()
+
+        flash("Announcement published successfully.", "success")
+        return redirect(url_for("announcements_view"))
+
+    if role == "Admin":
+        announcements = Announcement.query.order_by(Announcement.id.desc()).all()
+    else:
+        announcements = Announcement.query.filter(
+            or_(Announcement.target_role == "All", Announcement.target_role == role)
+        ).order_by(Announcement.id.desc()).all()
+
+    return render_template(
+        "announcements.html",
+        announcements=announcements
+    )
+
+
+@app.route("/announcement/delete/<int:announcement_id>", methods=["POST"])
+@role_required("Admin")
+def delete_announcement(announcement_id):
+    announcement = Announcement.query.get_or_404(announcement_id)
+    db.session.delete(announcement)
+    db.session.commit()
+    flash("Announcement deleted.", "info")
+    return redirect(url_for("announcements_view"))
+
+
+# Student Study Resources (added by admin during course/exam creation or management)
+@app.route("/student/resources")
+@role_required("Student")
+def student_resources():
+    resources = Resource.query.all()
+    courses = Course.query.all()
+    examinations = Examination.query.all()
+
+    return render_template(
+        "student_resources.html",
+        resources=resources,
+        courses=courses,
+        examinations=examinations
+    )
+
+
+# Admin Resource Management
+@app.route("/admin/resources", methods=["GET", "POST"])
+@role_required("Admin")
+def admin_resources():
+    if request.method == "POST":
+        title = request.form.get("title")
+        description = request.form.get("description")
+        url = request.form.get("url")
+        course_id = request.form.get("course_id", type=int) or None
+        examination_id = request.form.get("examination_id", type=int) or None
+
+        if not title or not url:
+            flash("Resource title and URL are required.", "danger")
+            return redirect(url_for("admin_resources"))
+
+        res = Resource(
+            title=title.strip(),
+            url=url.strip(),
+            description=description.strip() if description else None,
+            course_id=course_id,
+            examination_id=examination_id,
+            created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
+        )
+        db.session.add(res)
+        db.session.commit()
+        flash("Study resource uploaded successfully.", "success")
+        return redirect(url_for("admin_resources"))
+
+    resources = Resource.query.order_by(Resource.id.desc()).all()
+    courses = Course.query.all()
+    examinations = Examination.query.all()
+
+    return render_template(
+        "admin_resources.html",
+        resources=resources,
+        courses=courses,
+        examinations=examinations
+    )
+
+
+@app.route("/admin/resource/delete/<int:resource_id>", methods=["POST"])
+@role_required("Admin")
+def delete_resource(resource_id):
+    res = Resource.query.get_or_404(resource_id)
+    db.session.delete(res)
+    db.session.commit()
+    flash("Resource deleted.", "info")
+    return redirect(url_for("admin_resources"))
+
+
+# Overall Student Performance Analytics (Accessible by Admin, Examiner, Student)
+@app.route("/analytics")
+def performance_analytics():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    role = session.get("role")
+    evaluations = Evaluation.query.filter_by(status="Completed").all()
+
+    scores = [e.marks for e in evaluations if e.marks is not None]
+    avg_marks = round(sum(scores) / len(scores), 1) if scores else 0
+    highest_marks = max(scores) if scores else 0
+    lowest_marks = min(scores) if scores else 0
+    total_evaluations = len(scores)
+
+    # Per-examination breakdown
+    exam_stats = []
+    examinations = Examination.query.all()
+    for exam in examinations:
+        exam_evals = Evaluation.query.join(
+            Booking, Evaluation.booking_id == Booking.id
+        ).join(
+            ExaminationSlot, Booking.slot_id == ExaminationSlot.id
+        ).filter(
+            ExaminationSlot.examination_id == exam.id,
+            Evaluation.status == "Completed"
+        ).all()
+
+        exam_scores = [ev.marks for ev in exam_evals if ev.marks is not None]
+        exam_avg = round(sum(exam_scores) / len(exam_scores), 1) if exam_scores else 0
+        exam_high = max(exam_scores) if exam_scores else 0
+        exam_low = min(exam_scores) if exam_scores else 0
+
+        # Grade distribution for this exam
+        # A: >= 85, B: 70-84, C: 50-69, D: 40-49, F: < 40
+        grades = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
+        for s in exam_scores:
+            if s >= 85:
+                grades["A"] += 1
+            elif s >= 70:
+                grades["B"] += 1
+            elif s >= 50:
+                grades["C"] += 1
+            elif s >= 40:
+                grades["D"] += 1
+            else:
+                grades["F"] += 1
+
+        exam_stats.append({
+            "examination": exam,
+            "attempts": len(exam_scores),
+            "avg": exam_avg,
+            "high": exam_high,
+            "low": exam_low,
+            "grades": grades
+        })
+
+    return render_template(
+        "analytics.html",
+        avg_marks=avg_marks,
+        highest_marks=highest_marks,
+        lowest_marks=lowest_marks,
+        total_evaluations=total_evaluations,
+        exam_stats=exam_stats,
+        role=role
+    )
+
+
+# Grade Distribution Analysis specifically for an Examination (Admin)
+@app.route("/admin/examination/<int:examination_id>/grades")
+@role_required("Admin")
+def examination_grade_analysis(examination_id):
+    examination = Examination.query.get_or_404(examination_id)
+
+    evals = Evaluation.query.join(
+        Booking, Evaluation.booking_id == Booking.id
+    ).join(
+        ExaminationSlot, Booking.slot_id == ExaminationSlot.id
+    ).filter(
+        ExaminationSlot.examination_id == examination.id,
+        Evaluation.status == "Completed"
+    ).all()
+
+    scores = [ev.marks for ev in evals if ev.marks is not None]
+    avg_marks = round(sum(scores) / len(scores), 1) if scores else 0
+    highest_marks = max(scores) if scores else 0
+    lowest_marks = min(scores) if scores else 0
+
+    grades = {"A (85+)": 0, "B (70-84)": 0, "C (50-69)": 0, "D (40-49)": 0, "F (<40)": 0}
+    for s in scores:
+        if s >= 85:
+            grades["A (85+)"] += 1
+        elif s >= 70:
+            grades["B (70-84)"] += 1
+        elif s >= 50:
+            grades["C (50-69)"] += 1
+        elif s >= 40:
+            grades["D (40-49)"] += 1
+        else:
+            grades["F (<40)"] += 1
+
+    return render_template(
+        "grade_distribution.html",
+        examination=examination,
+        evaluations=evals,
+        total_students=len(scores),
+        avg_marks=avg_marks,
+        highest_marks=highest_marks,
+        lowest_marks=lowest_marks,
+        grades=grades
+    )
+
+
+# Examiner History & Personal Analytics
+@app.route("/examiner/history")
+@role_required("Examiner")
+def examiner_history():
+    examiner_id = session["user_id"]
+
+    evaluations = Evaluation.query.filter_by(
+        examiner_id=examiner_id,
+        status="Completed"
+    ).all()
+
+    scores = [e.marks for e in evaluations if e.marks is not None]
+    avg_marks = round(sum(scores) / len(scores), 1) if scores else 0
+    highest_marks = max(scores) if scores else 0
+    lowest_marks = min(scores) if scores else 0
+
+    slots_created = ExaminationSlot.query.filter_by(examiner_id=examiner_id).all()
+
+    return render_template(
+        "examiner_history.html",
+        evaluations=evaluations,
+        total_evaluated=len(scores),
+        avg_marks=avg_marks,
+        highest_marks=highest_marks,
+        lowest_marks=lowest_marks,
+        slots=slots_created
+    )
+
+
+# Examiner Availability Calendar / Marking Unavailability
+@app.route("/examiner/availability", methods=["GET", "POST"])
+@role_required("Examiner")
+def examiner_availability():
+    examiner_id = session["user_id"]
+
+    if request.method == "POST":
+        unavail_date = request.form.get("date")
+        reason = request.form.get("reason")
+
+        if not unavail_date:
+            flash("Please specify a date.", "danger")
+            return redirect(url_for("examiner_availability"))
+
+        # Check if already added
+        exists = ExaminerUnavailability.query.filter_by(
+            examiner_id=examiner_id,
+            date=unavail_date
+        ).first()
+
+        if exists:
+            flash("You have already marked this date as unavailable.", "warning")
+            return redirect(url_for("examiner_availability"))
+
+        unavail = ExaminerUnavailability(
+            examiner_id=examiner_id,
+            date=unavail_date,
+            reason=reason.strip() if reason else None
+        )
+        db.session.add(unavail)
+        db.session.commit()
+
+        flash("Unavailable date recorded successfully.", "success")
+        return redirect(url_for("examiner_availability"))
+
+    unavailabilities = ExaminerUnavailability.query.filter_by(
+        examiner_id=examiner_id
+    ).order_by(ExaminerUnavailability.date.asc()).all()
+
+    return render_template(
+        "examiner_availability.html",
+        unavailabilities=unavailabilities
+    )
+
+
+@app.route("/examiner/availability/delete/<int:unavail_id>", methods=["POST"])
+@role_required("Examiner")
+def delete_examiner_unavailability(unavail_id):
+    examiner_id = session["user_id"]
+    unavail = ExaminerUnavailability.query.filter_by(
+        id=unavail_id,
+        examiner_id=examiner_id
+    ).first_or_404()
+
+    db.session.delete(unavail)
+    db.session.commit()
+    flash("Unavailability entry removed.", "info")
+    return redirect(url_for("examiner_availability"))
+
+
+# CSV Import for Students from Admin Side
+@app.route("/admin/students/import-csv", methods=["POST"])
+@role_required("Admin")
+def import_students_csv():
+    if "csv_file" not in request.files:
+        flash("No file part in the request.", "danger")
+        return redirect(url_for("admin_users"))
+
+    file = request.files["csv_file"]
+    if file.filename == "":
+        flash("No file selected.", "danger")
+        return redirect(url_for("admin_users"))
+
+    if not file.filename.endswith(".csv"):
+        flash("Please upload a valid .csv file.", "danger")
+        return redirect(url_for("admin_users"))
+
+    try:
+        stream = io.StringIO(file.stream.read().decode("UTF-8"), newline=None)
+        csv_reader = csv.DictReader(stream)
+
+        imported_count = 0
+        updated_count = 0
+
+        for row in csv_reader:
+            # Expected headers: name, email, password, roll_number, department, year, phone
+            name = row.get("name", "").strip()
+            email = row.get("email", "").strip()
+            password = row.get("password", "").strip()
+            roll_number = row.get("roll_number", "").strip()
+            department = row.get("department", "").strip()
+            year = row.get("year", "").strip()
+            phone = row.get("phone", "").strip()
+
+            if not name or not email or not password:
+                continue
+
+            user = User.query.filter_by(email=email).first()
+            if user is None:
+                hashed = generate_password_hash(password, method="pbkdf2:sha256")
+                user = User(
+                    name=name,
+                    email=email,
+                    password_hash=hashed,
+                    role="Student"
+                )
+                user.is_approved = True
+                user.is_active = True
+                db.session.add(user)
+                db.session.flush()
+
+                profile = StudentProfile(
+                    user_id=user.id,
+                    roll_number=roll_number or None,
+                    department=department or None,
+                    year=year or None,
+                    phone=phone or None
+                )
+                db.session.add(profile)
+                imported_count += 1
+            else:
+                # Update existing student's info & profile
+                user.name = name
+                profile = StudentProfile.query.filter_by(user_id=user.id).first()
+                if profile is None:
+                    profile = StudentProfile(
+                        user_id=user.id,
+                        roll_number=roll_number or None,
+                        department=department or None,
+                        year=year or None,
+                        phone=phone or None
+                    )
+                    db.session.add(profile)
+                else:
+                    if roll_number:
+                        profile.roll_number = roll_number
+                    if department:
+                        profile.department = department
+                    if year:
+                        profile.year = year
+                    if phone:
+                        profile.phone = phone
+                updated_count += 1
+
+        db.session.commit()
+        flash(f"CSV Import Complete: {imported_count} new student(s) added, {updated_count} updated.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error reading CSV file: {str(e)}", "danger")
+
+    return redirect(url_for("admin_users"))
 
 
 if __name__ == "__main__":

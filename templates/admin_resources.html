@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Resource Management – Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2><i class="bi bi-folder2-open me-2"></i>Resource Management</h2>
+            <p class="text-muted mb-0">Upload study materials, reference links, and guidelines for students.</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#uploadResourceCollapse">
+            <i class="bi bi-plus-lg me-1"></i> Add New Resource
+        </button>
+    </div>
+
+    <!-- Upload Resource Form -->
+    <div class="collapse mb-4" id="uploadResourceCollapse">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>Add Study Resource</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Resource Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g., Operating Systems Lecture Notes Chapter 1-5" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Resource URL / External Link</label>
+                            <input type="url" name="url" class="form-control" placeholder="https://example.com/notes.pdf" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Link to Course (Optional)</label>
+                            <select name="course_id" class="form-select">
+                                <option value="">Select course (optional)...</option>
+                                {% for c in courses %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Link to Examination (Optional)</label>
+                            <select name="examination_id" class="form-select">
+                                <option value="">Select examination (optional)...</option>
+                                {% for e in examinations %}
+                                <option value="{{ e.id }}">{{ e.name }} ({{ e.course.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description / Notes</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="Brief summary of what this resource covers..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#uploadResourceCollapse">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Save Resource</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resources Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Target</th>
+                            <th>Link</th>
+                            <th>Date Added</th>
+                            <th style="width: 120px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in resources %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ r.title }}</div>
+                                <small class="text-muted">{{ r.description or '' }}</small>
+                            </td>
+                            <td>
+                                {% if r.examination %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clipboard2-check me-1"></i>{{ r.examination.name }}</span>
+                                {% elif r.course %}
+                                    <span class="badge bg-primary"><i class="bi bi-book me-1"></i>{{ r.course.name }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">General</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ r.url }}" target="_blank" class="small text-truncate d-inline-block" style="max-width: 250px;">
+                                    <i class="bi bi-link-45deg me-1"></i>{{ r.url }}
+                                </a>
+                            </td>
+                            <td><small class="text-muted">{{ r.created_at }}</small></td>
+                            <td class="text-center">
+                                <form method="POST" action="{{ url_for('delete_resource', resource_id=r.id) }}" onsubmit="return confirm('Delete this resource?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No resources uploaded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

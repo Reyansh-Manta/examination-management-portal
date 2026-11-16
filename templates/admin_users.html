@@ -1,105 +1,177 @@
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Manage Users</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-</head>
+{% block title %}User Management & Student CSV Import – Exam Portal{% endblock %}
 
-<body>
-
+{% block content %}
 <div class="container mt-4">
 
-    <h2>Student and Examiner Management</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2><i class="bi bi-people me-2"></i>Student & Examiner Directory</h2>
+            <p class="text-muted mb-0">Manage student profiles, import batch student CSV files, and supervise examiner approvals.</p>
+        </div>
+        <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#importCsvCollapse">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import Students CSV
+        </button>
+    </div>
 
-    <a href="{{ url_for('admin_dashboard') }}"
-       class="btn btn-secondary mb-3">
-        Back to Dashboard
-    </a>
+    <!-- CSV Import Collapse Card -->
+    <div class="collapse mb-4" id="importCsvCollapse">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-arrow-up me-2"></i>Batch Import Students from CSV</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="small text-muted mb-3">
+                    Upload a CSV file containing pre-existing student details. Students will log in using the assigned password specified in the file.
+                    <br><strong>Required CSV Column Headers:</strong> <code>name, email, password, roll_number, department, year, phone</code>
+                </p>
 
+                <form method="POST" action="{{ url_for('import_students_csv') }}" enctype="multipart/form-data">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-8">
+                            <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-upload me-1"></i> Upload & Import
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#importCsvCollapse">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Users -->
     <form method="GET" class="mb-4">
         <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="text"
                    name="search"
                    class="form-control"
-                   placeholder="Search by ID, name or email"
+                   placeholder="Search students or examiners by ID, name, email or roll number..."
                    value="{{ search }}">
 
-            <button type="submit" class="btn btn-primary">
-                Search
-            </button>
+            <button type="submit" class="btn btn-primary">Search</button>
 
-            <a href="{{ url_for('admin_users') }}"
-               class="btn btn-secondary">
-                Clear
-            </a>
+            {% if search %}
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary">Clear</a>
+            {% endif %}
         </div>
     </form>
 
-    <h4>Students</h4>
+    <!-- Students Table with College Details -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person me-2"></i>Enrolled Students ({{ students|length }})</h5>
+            <small class="text-muted">Pre-existing college students list</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th>Student Name</th>
+                            <th>Email Address</th>
+                            <th>Roll Number</th>
+                            <th>Department</th>
+                            <th>Year</th>
+                            <th>Phone</th>
+                            <th style="width: 100px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.id }}</td>
+                            <td class="fw-bold">{{ student.name }}</td>
+                            <td>{{ student.email }}</td>
+                            <td>
+                                {% if student.student_profile and student.student_profile.roll_number %}
+                                    <span class="badge bg-secondary font-monospace">{{ student.student_profile.roll_number }}</span>
+                                {% else %}
+                                    <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ student.student_profile.department if student.student_profile and student.student_profile.department else '—' }}</td>
+                            <td>{{ student.student_profile.year if student.student_profile and student.student_profile.year else '—' }}</td>
+                            <td><small class="text-muted">{{ student.student_profile.phone if student.student_profile and student.student_profile.phone else '—' }}</small></td>
+                            <td>
+                                {% if student.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">No students found. Use "Import Students CSV" above to load student records.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    <table class="table table-bordered mb-4">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Active</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for student in students %}
-            <tr>
-                <td>{{ student.id }}</td>
-                <td>{{ student.name }}</td>
-                <td>{{ student.email }}</td>
-                <td>{{ "Yes" if student.is_active else "No" }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4" class="text-center">
-                    No students found.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h4>Examiners</h4>
-
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Approved</th>
-                <th>Active</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for examiner in examiners %}
-            <tr>
-                <td>{{ examiner.id }}</td>
-                <td>{{ examiner.name }}</td>
-                <td>{{ examiner.email }}</td>
-                <td>{{ "Yes" if examiner.is_approved else "No" }}</td>
-                <td>{{ "Yes" if examiner.is_active else "No" }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="5" class="text-center">
-                    No examiners found.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Examiners Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Examiners Directory ({{ examiners|length }})</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th>Examiner Name</th>
+                            <th>Email Address</th>
+                            <th>Qualification</th>
+                            <th>Specialization</th>
+                            <th>Approval</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for examiner in examiners %}
+                        <tr>
+                            <td>{{ examiner.id }}</td>
+                            <td class="fw-bold">{{ examiner.name }}</td>
+                            <td>{{ examiner.email }}</td>
+                            <td>{{ examiner.examiner_profile.qualification if examiner.examiner_profile and examiner.examiner_profile.qualification else '—' }}</td>
+                            <td>{{ examiner.examiner_profile.specialization if examiner.examiner_profile and examiner.examiner_profile.specialization else '—' }}</td>
+                            <td>
+                                {% if examiner.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if examiner.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No examiners found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 </div>
-
-</body>
-</html>
+{% endblock %}

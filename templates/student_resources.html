@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Study & Examination Resources – Student Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-folder2-open me-2"></i>Study Resources & Course Materials</h2>
+            <p class="text-muted mb-0">Access approved reference links, syllabus notes, guidelines, and preparation documents.</p>
+        </div>
+    </div>
+
+    <!-- Filter by Course / Exam -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="bi bi-book me-1"></i> Active Courses</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for course in courses %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">{{ course.name }}</div>
+                                <small class="text-muted">{{ course.description or "No description" }}</small>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">{{ course.resources|length }} resources</span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No courses available.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-dark">
+                    <h6 class="mb-0"><i class="bi bi-clipboard2-check me-1"></i> Examination Material Index</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for exam in examinations %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">{{ exam.name }}</div>
+                                <small class="text-muted">Course: {{ exam.course.name }}</small>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">{{ exam.resources|length }} files</span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No examinations scheduled.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Resource Items -->
+    <h4 class="mb-3"><i class="bi bi-collection me-2"></i>All Available Study Resources</h4>
+    {% if resources %}
+    <div class="row g-3">
+        {% for res in resources %}
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100 border-start border-4 border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title fw-bold text-dark mb-0">{{ res.title }}</h5>
+                        {% if res.examination %}
+                            <span class="badge bg-warning text-dark">{{ res.examination.name }}</span>
+                        {% elif res.course %}
+                            <span class="badge bg-primary">{{ res.course.name }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="card-text text-muted small mb-3">{{ res.description or "No supplementary description provided." }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted"><i class="bi bi-calendar me-1"></i>{{ res.created_at }}</small>
+                        <a href="{{ res.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Resource
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card shadow-sm text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-folder-x text-muted fs-1 d-block mb-2"></i>
+            <h5>No resources uploaded yet.</h5>
+            <p class="text-muted mb-0">Your instructors or administrator will link study notes and syllabus guidelines here.</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

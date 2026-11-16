@@ -1,101 +1,185 @@
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Student Dashboard</title>
+{% block title %}Student Dashboard – Exam Portal{% endblock %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-</head>
-
-<body>
-
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-
-        <a class="navbar-brand" href="/student_dashboard">
-            Student Dashboard
-        </a>
-
-        <div>
-            <span class="text-white me-3">
-                Welcome, {{ session["user_name"] }}
-            </span>
-
-            <a href="/logout" class="btn btn-danger btn-sm">
-                Logout
-            </a>
-        </div>
-
-    </div>
-</nav>
-
+{% block content %}
 <div class="container mt-4">
 
-    <h2>Welcome to your Dashboard</h2>
-
-    <p>Manage your examinations and bookings here.</p>
-
-    <div class="row mt-4">
-
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow">
-                <div class="card-body">
-                    <h5>Total Bookings</h5>
-                    <h2>{{ total_bookings }}</h2>
-                </div>
-            </div>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0 fw-bold"><i class="bi bi-mortarboard me-2 text-primary"></i>Student Portal Dashboard</h2>
+            <p class="text-muted mb-0">Welcome back, <strong>{{ session["user_name"] }}</strong>! Here is an overview of your viva exams and results.</p>
         </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow">
-                <div class="card-body">
-                    <h5>Upcoming Examinations</h5>
-                    <h2>{{ upcoming_examinations }}</h2>
-                </div>
-            </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('student_calendar') }}" class="btn btn-outline-primary">
+                <i class="bi bi-calendar3 me-1"></i> Exam Calendar
+            </a>
+            <a href="{{ url_for('student_resources') }}" class="btn btn-outline-success">
+                <i class="bi bi-folder2-open me-1"></i> Study Materials
+            </a>
         </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card text-center shadow">
-                <div class="card-body">
-                    <h5>Completed Examinations</h5>
-                    <h2>{{ completed_examinations }}</h2>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <hr>
+    <!-- Latest Announcement Alert (if any) -->
+    {% if announcements %}
+    <div class="alert alert-info shadow-sm d-flex align-items-start gap-2 mb-4" role="alert">
+        <i class="bi bi-megaphone-fill fs-5 mt-1 text-primary"></i>
+        <div class="w-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <strong>Campus Notice: {{ announcements[0].title }}</strong>
+                <small class="text-muted">{{ announcements[0].created_at }}</small>
+            </div>
+            <div class="small text-secondary mt-1">{{ announcements[0].content }}</div>
+        </div>
+    </div>
+    {% endif %}
 
-    <h4 class="mt-4">Student Activities</h4>
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-white bg-primary h-100 border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1 opacity-75">Active Bookings</h6>
+                        <h2 class="mb-0 fw-bold">{{ total_bookings }}</h2>
+                    </div>
+                    <i class="bi bi-journal-bookmark fs-1 opacity-50"></i>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <a href="{{ url_for('student_bookings') }}" class="text-white small">Manage Bookings &rarr;</a>
+                </div>
+            </div>
+        </div>
 
-    <div class="list-group mt-3">
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-white bg-success h-100 border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1 opacity-75">Upcoming Viva Exams</h6>
+                        <h2 class="mb-0 fw-bold">{{ upcoming_examinations }}</h2>
+                    </div>
+                    <i class="bi bi-calendar-event fs-1 opacity-50"></i>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <a href="{{ url_for('student_upcoming') }}" class="text-white small">View Schedule &rarr;</a>
+                </div>
+            </div>
+        </div>
 
-        <a href="/student/profile" class="list-group-item list-group-item-action">
-            Update Profile
-        </a>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-white bg-secondary h-100 border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1 opacity-75">Completed Exams</h6>
+                        <h2 class="mb-0 fw-bold">{{ completed_examinations }}</h2>
+                    </div>
+                    <i class="bi bi-check2-circle fs-1 opacity-50"></i>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <a href="{{ url_for('student_history') }}" class="text-white small">Exam History &rarr;</a>
+                </div>
+            </div>
+        </div>
 
-        <a href="/student/examinations" class="list-group-item list-group-item-action">
-            View Available Examinations
-        </a>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-white bg-info h-100 border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1 opacity-75">Average Score</h6>
+                        <h2 class="mb-0 fw-bold">{{ avg_score }}</h2>
+                        <small class="opacity-75">High: {{ highest_score }}</small>
+                    </div>
+                    <i class="bi bi-trophy fs-1 opacity-50"></i>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <a href="{{ url_for('student_results') }}" class="text-white small">Results Scorecard &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <a href="/student/bookings" class="list-group-item list-group-item-action">
-            My Bookings
-        </a>
+    <!-- Quick Actions Grid -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Student Portal Tools & Navigation</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-6 col-md-3">
+                    <a href="{{ url_for('student_calendar') }}" class="btn btn-outline-primary w-100 py-3">
+                        <i class="bi bi-calendar3 d-block fs-3 mb-1"></i>
+                        Monthly Calendar
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{{ url_for('student_examinations') }}" class="btn btn-outline-success w-100 py-3">
+                        <i class="bi bi-clipboard2-check d-block fs-3 mb-1"></i>
+                        Browse Exams
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{{ url_for('student_resources') }}" class="btn btn-outline-info w-100 py-3">
+                        <i class="bi bi-folder2-open d-block fs-3 mb-1"></i>
+                        Study Resources
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{{ url_for('performance_analytics') }}" class="btn btn-outline-warning w-100 py-3">
+                        <i class="bi bi-bar-chart-line d-block fs-3 mb-1"></i>
+                        Score Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <a href="/student/history" class="list-group-item list-group-item-action">
-            Examination History
-        </a>
-
-        <a href="/student/results" class="list-group-item list-group-item-action">
-            View Results and Feedback
-        </a>
-
+    <!-- Evaluation Scores & Reports (Requirement 5) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-card-checklist me-2"></i>My Evaluation Results & Reports</h5>
+            <a href="{{ url_for('student_results') }}" class="btn btn-sm btn-outline-primary">View Full Scorecard</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Examination</th>
+                            <th>Course</th>
+                            <th>Slot Date</th>
+                            <th>Examiner</th>
+                            <th class="text-center">Score</th>
+                            <th>Remarks</th>
+                            <th class="text-center">Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ev in evaluations %}
+                        <tr>
+                            <td class="fw-semibold">{{ ev.booking.slot.examination.name }}</td>
+                            <td>{{ ev.booking.slot.examination.course.name }}</td>
+                            <td>{{ ev.booking.slot.date }}</td>
+                            <td>{{ ev.examiner.name }}</td>
+                            <td class="text-center"><span class="badge bg-primary fs-6">{{ ev.marks }}</span></td>
+                            <td><small class="text-muted">{{ ev.remarks or '—' }}</small></td>
+                            <td class="text-center">
+                                <a href="{{ url_for('download_result_report', evaluation_id=ev.id) }}"
+                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No completed evaluation results yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 </div>
-
-</body>
-</html>
+{% endblock %}
