@@ -3,49 +3,54 @@
 {% block title %}Notification Centre – Exam Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-4" style="max-width: 800px;">
+<div class="container mt-4" style="max-width: 820px;">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-bell me-2"></i>Notification Centre</h2>
+            <h2 class="fw-bold mb-1" style="color: var(--color-text);">
+                <i class="bi bi-bell me-2" style="color: var(--color-accent);"></i>Notification Centre
+            </h2>
             <p class="text-muted mb-0">Updates on slot booking confirmations, cancellations, rescheduling, and published grades.</p>
         </div>
-        <span class="badge bg-secondary">{{ notifications|length }} total</span>
+        <span class="badge rounded-pill" style="background: rgba(200, 150, 62, 0.2); color: var(--color-accent); font-weight: 700; font-size: 0.85rem; padding: 6px 12px;">
+            {{ notifications|length }} total
+        </span>
     </div>
 
     {% if notifications %}
-    <div class="list-group shadow-sm">
+    <div class="d-flex flex-column gap-2 mb-4">
         {% for n in notifications %}
-        <div class="list-group-item list-group-item-action p-3 mb-2 border rounded">
-            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                <h6 class="mb-0 fw-bold">
-                    {% if n.category == 'success' %}
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                    {% elif n.category == 'warning' %}
-                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-                    {% elif n.category == 'danger' %}
-                        <i class="bi bi-x-circle-fill text-danger me-2"></i>
-                    {% else %}
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                    {% endif %}
-                    {{ n.title }}
-                </h6>
-                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ n.created_at }}</small>
+        <div class="card shadow-sm">
+            <div class="card-body p-3">
+                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                    <h6 class="mb-0 fw-bold d-flex align-items-center gap-2" style="color: var(--color-text);">
+                        {% if n.category == 'success' %}
+                            <i class="bi bi-check-circle-fill" style="color: var(--color-success);"></i>
+                        {% elif n.category == 'warning' %}
+                            <i class="bi bi-exclamation-triangle-fill" style="color: var(--color-warning);"></i>
+                        {% elif n.category == 'danger' %}
+                            <i class="bi bi-x-circle-fill" style="color: var(--color-danger);"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill" style="color: var(--color-info);"></i>
+                        {% endif %}
+                        {{ n.title }}
+                    </h6>
+                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ n.created_at }}</small>
+                </div>
+                <p class="mb-0 text-muted ps-4 small" style="line-height: 1.5;">{{ n.message }}</p>
             </div>
-            <p class="mb-0 text-muted ps-4" style="font-size: 0.95rem;">{{ n.message }}</p>
         </div>
         {% endfor %}
     </div>
     {% else %}
     <div class="card shadow-sm text-center py-5">
         <div class="card-body">
-            <i class="bi bi-bell-slash text-muted fs-1 d-block mb-2"></i>
-            <h5>No notifications yet</h5>
-            <p class="text-muted mb-0">You're all caught up! New updates on bookings and evaluations will appear here.</p>
+            <i class="bi bi-bell-slash fs-1 d-block mb-2" style="color: var(--color-muted); opacity: 0.5;"></i>
+            <h5 class="fw-semibold text-muted">No notifications yet</h5>
+            <p class="text-muted small mb-0">You're all caught up! New updates on bookings, examinations, and evaluations will appear here.</p>
         </div>
     </div>
     {% endif %}
 
 </div>
 {% endblock %}
-

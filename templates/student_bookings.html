@@ -1,74 +1,122 @@
-
 {% extends "base.html" %}
 
-{% block title %}My Bookings – Exam Portal{% endblock %}
+{% block title %}My Viva Bookings – Student Portal{% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
 
-    <h2>My Bookings</h2>
-
-    {% if bookings %}
-
-    <div class="table-responsive">
-        
-<table class="table table-bordered table-striped">
-
-    <thead>
-        <tr>
-            <th>Booking ID</th>
-            <th>Examination</th>
-            <th>Slot Date</th>
-            <th>Slot Time</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        {% for booking in bookings %}
-        <tr>
-            <td>{{ booking.id }}</td>
-            <td>{{ booking.slot.examination.name }}</td>
-            <td>{{ booking.slot.date }}</td>
-            <td>{{ booking.slot.time }}</td>
-            <td>{{ booking.status }}</td>
-
-            <td>
-                <form method="POST"
-                      action="{{ url_for(
-                          'student_cancel_booking',
-                          booking_id=booking.id
-                      ) }}">
-
-                    <button type="submit"
-                            class="btn btn-danger btn-sm"
-                            onclick="return confirm('Are you sure you want to cancel this booking?')">
-                        Cancel
-                    </button>
-
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-
-</table>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--color-text);">
+                <i class="bi bi-journal-bookmark me-2" style="color: var(--color-primary);"></i>My Bookings
+            </h2>
+            <p class="text-muted mb-0">Overview of your booked, completed, and past viva examination slots.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('student_calendar') }}" class="btn btn-warm-outline-primary">
+                <i class="bi bi-calendar3 me-1"></i> View Calendar
+            </a>
+            <a href="{{ url_for('student_examinations') }}" class="btn btn-warm-primary">
+                <i class="bi bi-search me-1"></i> Browse Examinations
+            </a>
+        </div>
     </div>
 
+    {% if bookings %}
+    <div class="card shadow-sm">
+        <div class="warm-card-header d-flex justify-content-between align-items-center p-3">
+            <span class="fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-calendar-check me-2" style="color: var(--color-primary);"></i>Booked Examination Slots
+            </span>
+            <span class="badge" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-weight: 700;">
+                {{ bookings|length }} Total Bookings
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="warm-thead">
+                        <tr>
+                            <th style="width: 90px;">Booking ID</th>
+                            <th>Examination & Course</th>
+                            <th>Slot Date</th>
+                            <th>Slot Time</th>
+                            <th>Examiner</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" style="width: 170px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td class="fw-bold text-muted">#{{ booking.id }}</td>
+                            <td>
+                                <div class="fw-bold" style="color: var(--color-text);">{{ booking.slot.examination.name }}</div>
+                                <small class="text-muted">{{ booking.slot.examination.course.name if booking.slot.examination.course else 'General Course' }}</small>
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar3 me-1" style="color: var(--color-primary);"></i>
+                                <span class="fw-semibold">{{ booking.slot.date }}</span>
+                            </td>
+                            <td>
+                                <i class="bi bi-clock me-1 text-muted"></i>
+                                <span>{{ booking.slot.time }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ booking.slot.examiner.name if booking.slot.examiner else 'Assigned Faculty' }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if booking.status == 'Booked' %}
+                                    <span class="badge" style="background: rgba(200, 150, 62, 0.18); color: var(--color-accent); font-weight: 700;">
+                                        <i class="bi bi-hourglass-split me-1"></i>Confirmed
+                                    </span>
+                                {% elif booking.status == 'Completed' %}
+                                    <span class="badge" style="background: rgba(45, 106, 79, 0.15); color: var(--color-success); font-weight: 700;">
+                                        <i class="bi bi-check2-circle me-1"></i>Completed
+                                    </span>
+                                {% elif booking.status == 'Cancelled' %}
+                                    <span class="badge" style="background: rgba(192, 57, 43, 0.12); color: var(--color-danger); font-weight: 700;">
+                                        <i class="bi bi-x-circle me-1"></i>Cancelled
+                                    </span>
+                                {% else %}
+                                    <span class="badge" style="background: #e8ddd0; color: var(--color-text);">{{ booking.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if booking.status == 'Booked' %}
+                                <form method="POST" action="{{ url_for('student_cancel_booking', booking_id=booking.id) }}"
+                                      onsubmit="return confirm('Are you sure you want to cancel this booking on {{ booking.slot.date }}?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm px-3">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel Slot
+                                    </button>
+                                </form>
+                                {% elif booking.status == 'Completed' %}
+                                <a href="{{ url_for('student_results') }}" class="btn btn-warm-outline-primary btn-sm px-3">
+                                    <i class="bi bi-trophy me-1"></i>View Score
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     {% else %}
-
-        <p>You have not booked any examination slots yet.</p>
-
+    <div class="card shadow-sm text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-journal-x fs-1 d-block mb-2" style="color: var(--color-accent); opacity: 0.6;"></i>
+            <h5 class="fw-bold" style="color: var(--color-text);">No Viva Bookings Yet</h5>
+            <p class="text-muted small mb-3">You haven't reserved an examination slot yet. Explore available exams to pick your preferred date.</p>
+            <a href="{{ url_for('student_examinations') }}" class="btn btn-warm-primary px-4">
+                <i class="bi bi-search me-1"></i> Browse Available Examinations
+            </a>
+        </div>
+    </div>
     {% endif %}
 
-    <a href="{{ url_for('student_examinations') }}"
-       class="btn btn-primary">
-        Browse Examinations
-    </a>
-
 </div>
-
 {% endblock %}

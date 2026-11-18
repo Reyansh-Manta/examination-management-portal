@@ -5,128 +5,118 @@
 {% block content %}
 <div class="container mt-4">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="mb-0 fw-bold"><i class="bi bi-mortarboard me-2 text-primary"></i>Student Portal Dashboard</h2>
-            <p class="text-muted mb-0">Welcome back, <strong>{{ session["user_name"] }}</strong>! Here is an overview of your viva exams and results.</p>
+            <h2 class="mb-1 fw-bold text-dark">
+                Student Dashboard
+            </h2>
+            <p class="text-muted mb-0 small">Welcome back, <strong>{{ session["user_name"] }}</strong>. Manage your viva schedules, study resources, and evaluation results.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('student_calendar') }}" class="btn btn-outline-primary">
-                <i class="bi bi-calendar3 me-1"></i> Exam Calendar
+            <a href="{{ url_for('student_calendar') }}" class="btn btn-outline-secondary btn-sm">
+                Exam Calendar
             </a>
-            <a href="{{ url_for('student_resources') }}" class="btn btn-outline-success">
-                <i class="bi bi-folder2-open me-1"></i> Study Materials
+            <a href="{{ url_for('student_resources') }}" class="btn btn-outline-secondary btn-sm">
+                Study Materials
             </a>
         </div>
     </div>
 
-    <!-- Latest Announcement Alert (if any) -->
     {% if announcements %}
-    <div class="alert alert-info shadow-sm d-flex align-items-start gap-2 mb-4" role="alert">
-        <i class="bi bi-megaphone-fill fs-5 mt-1 text-primary"></i>
+    <div class="alert alert-secondary d-flex align-items-start gap-3 mb-4 py-2 px-3" role="alert">
         <div class="w-100">
             <div class="d-flex justify-content-between align-items-center">
-                <strong>Campus Notice: {{ announcements[0].title }}</strong>
+                <strong class="text-dark small">Notice: {{ announcements[0].title }}</strong>
                 <small class="text-muted">{{ announcements[0].created_at }}</small>
             </div>
-            <div class="small text-secondary mt-1">{{ announcements[0].content }}</div>
+            <div class="small mt-1 text-secondary">{{ announcements[0].content }}</div>
         </div>
     </div>
     {% endif %}
 
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-primary h-100 border-0 shadow-sm">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Active Bookings</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_bookings }}</h2>
-                    </div>
-                    <i class="bi bi-journal-bookmark fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('student_bookings') }}" class="text-white small">Manage Bookings &rarr;</a>
-                </div>
+    {% if total_bookings == 0 %}
+    <div class="card mb-4 border">
+        <div class="card-body p-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div>
+                <h6 class="fw-semibold mb-1 text-dark">Ready to Schedule Your Examination?</h6>
+                <small class="text-muted">You have no active bookings right now. Choose your course and select a convenient viva time slot.</small>
             </div>
-        </div>
-
-        <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-success h-100 border-0 shadow-sm">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Upcoming Viva Exams</h6>
-                        <h2 class="mb-0 fw-bold">{{ upcoming_examinations }}</h2>
-                    </div>
-                    <i class="bi bi-calendar-event fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('student_upcoming') }}" class="text-white small">View Schedule &rarr;</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-secondary h-100 border-0 shadow-sm">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Completed Exams</h6>
-                        <h2 class="mb-0 fw-bold">{{ completed_examinations }}</h2>
-                    </div>
-                    <i class="bi bi-check2-circle fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('student_history') }}" class="text-white small">Exam History &rarr;</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-info h-100 border-0 shadow-sm">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Average Score</h6>
-                        <h2 class="mb-0 fw-bold">{{ avg_score }}</h2>
-                        <small class="opacity-75">High: {{ highest_score }}</small>
-                    </div>
-                    <i class="bi bi-trophy fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('student_results') }}" class="text-white small">Results Scorecard &rarr;</a>
-                </div>
-            </div>
+            <a href="{{ url_for('student_examinations') }}" class="btn btn-primary btn-sm px-3 flex-shrink-0">
+                Browse Exams &rarr;
+            </a>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Quick Actions Grid -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Student Portal Tools & Navigation</h5>
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card h-100" style="border-left: 3px solid #2d6a4f;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Active Bookings</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_bookings }}</div>
+                    <a href="{{ url_for('student_bookings') }}" class="small text-muted text-decoration-none">Manage bookings &rarr;</a>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card h-100" style="border-left: 3px solid #0f766e;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Upcoming Exams</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ upcoming_examinations }}</div>
+                    <a href="{{ url_for('student_upcoming') }}" class="small text-muted text-decoration-none">View schedule &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card h-100" style="border-left: 3px solid #b45309;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Completed Exams</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ completed_examinations }}</div>
+                    <a href="{{ url_for('student_history') }}" class="small text-muted text-decoration-none">Exam history &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card h-100" style="border-left: 3px solid #15803d;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Average Score</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ avg_score }}</div>
+                    <div class="small text-muted">High: {{ highest_score }}</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header py-2 px-3">
+            <h6 class="mb-0 fw-semibold text-dark">
+                Quick Navigation
+            </h6>
+        </div>
+        <div class="card-body p-3">
             <div class="row g-2">
                 <div class="col-6 col-md-3">
-                    <a href="{{ url_for('student_calendar') }}" class="btn btn-outline-primary w-100 py-3">
-                        <i class="bi bi-calendar3 d-block fs-3 mb-1"></i>
+                    <a href="{{ url_for('student_calendar') }}" class="quick-action-btn w-100">
                         Monthly Calendar
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="{{ url_for('student_examinations') }}" class="btn btn-outline-success w-100 py-3">
-                        <i class="bi bi-clipboard2-check d-block fs-3 mb-1"></i>
+                    <a href="{{ url_for('student_examinations') }}" class="quick-action-btn w-100">
                         Browse Exams
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="{{ url_for('student_resources') }}" class="btn btn-outline-info w-100 py-3">
-                        <i class="bi bi-folder2-open d-block fs-3 mb-1"></i>
+                    <a href="{{ url_for('student_resources') }}" class="quick-action-btn w-100">
                         Study Resources
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="{{ url_for('performance_analytics') }}" class="btn btn-outline-warning w-100 py-3">
-                        <i class="bi bi-bar-chart-line d-block fs-3 mb-1"></i>
+                    <a href="{{ url_for('performance_analytics') }}" class="quick-action-btn w-100">
                         Score Analytics
                     </a>
                 </div>
@@ -134,16 +124,17 @@
         </div>
     </div>
 
-    <!-- Evaluation Scores & Reports (Requirement 5) -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-card-checklist me-2"></i>My Evaluation Results & Reports</h5>
-            <a href="{{ url_for('student_results') }}" class="btn btn-sm btn-outline-primary">View Full Scorecard</a>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center py-2 px-3">
+            <h6 class="mb-0 fw-semibold text-dark">
+                My Evaluation Results
+            </h6>
+            <a href="{{ url_for('student_results') }}" class="small text-secondary text-decoration-none">View full scorecard &rarr;</a>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="warm-thead">
                         <tr>
                             <th>Examination</th>
                             <th>Course</th>
@@ -157,22 +148,26 @@
                     <tbody>
                         {% for ev in evaluations %}
                         <tr>
-                            <td class="fw-semibold">{{ ev.booking.slot.examination.name }}</td>
-                            <td>{{ ev.booking.slot.examination.course.name }}</td>
-                            <td>{{ ev.booking.slot.date }}</td>
-                            <td>{{ ev.examiner.name }}</td>
-                            <td class="text-center"><span class="badge bg-primary fs-6">{{ ev.marks }}</span></td>
+                            <td class="fw-medium text-dark">{{ ev.booking.slot.examination.name }}</td>
+                            <td class="text-muted small">{{ ev.booking.slot.examination.course.name }}</td>
+                            <td class="text-muted small">{{ ev.booking.slot.date }}</td>
+                            <td class="text-muted small">{{ ev.examiner.name }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">
+                                    {{ ev.marks }}
+                                </span>
+                            </td>
                             <td><small class="text-muted">{{ ev.remarks or '—' }}</small></td>
                             <td class="text-center">
                                 <a href="{{ url_for('download_result_report', evaluation_id=ev.id) }}"
-                                   class="btn btn-sm btn-outline-primary" target="_blank">
-                                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                                   class="btn btn-sm btn-outline-secondary" target="_blank">
+                                    PDF
                                 </a>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">No completed evaluation results yet.</td>
+                            <td colspan="7" class="text-center py-4 text-muted small">No completed evaluation results yet.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

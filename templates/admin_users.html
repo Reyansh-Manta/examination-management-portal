@@ -1,79 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}User Management & Student CSV Import – Exam Portal{% endblock %}
+{% block title %}User Management – Exam Portal{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-people me-2"></i>Student & Examiner Directory</h2>
-            <p class="text-muted mb-0">Manage student profiles, import batch student CSV files, and supervise examiner approvals.</p>
-        </div>
-        <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#importCsvCollapse">
-            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import Students CSV
-        </button>
-    </div>
-
-    <!-- CSV Import Collapse Card -->
-    <div class="collapse mb-4" id="importCsvCollapse">
-        <div class="card shadow-sm border-success">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-file-earmark-arrow-up me-2"></i>Batch Import Students from CSV</h5>
-            </div>
-            <div class="card-body p-4">
-                <p class="small text-muted mb-3">
-                    Upload a CSV file containing pre-existing student details. Students will log in using the assigned password specified in the file.
-                    <br><strong>Required CSV Column Headers:</strong> <code>name, email, password, roll_number, department, year, phone</code>
-                </p>
-
-                <form method="POST" action="{{ url_for('import_students_csv') }}" enctype="multipart/form-data">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-8">
-                            <input type="file" name="csv_file" class="form-control" accept=".csv" required>
-                        </div>
-                        <div class="col-md-4 d-flex gap-2">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-upload me-1"></i> Upload & Import
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#importCsvCollapse">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+            <h2 class="fw-bold mb-1" style="color: var(--color-primary);">
+                <i class="bi bi-people me-2" style="color: var(--color-accent);"></i>Student &amp; Examiner Directory
+            </h2>
+            <p class="text-muted mb-0">
+                Manage student profiles and supervise examiner approvals.
+            </p>
         </div>
     </div>
 
-    <!-- Search Users -->
     <form method="GET" class="mb-4">
         <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <span class="input-group-text" style="background: #faf6f0; border-color: #dcd1c4; color: var(--color-muted);"><i class="bi bi-search"></i></span>
             <input type="text"
                    name="search"
                    class="form-control"
                    placeholder="Search students or examiners by ID, name, email or roll number..."
                    value="{{ search }}">
 
-            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="submit" class="btn btn-warm-primary px-4">Search</button>
 
             {% if search %}
-            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary">Clear</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-warm-outline-muted">Clear</a>
             {% endif %}
         </div>
     </form>
 
-    <!-- Students Table with College Details -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-person me-2"></i>Enrolled Students ({{ students|length }})</h5>
+        <div class="warm-card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold" style="color:#2c1f10;">
+                <i class="bi bi-person me-2" style="color: var(--color-accent);"></i>Enrolled Students ({{ students|length }})
+            </h5>
             <small class="text-muted">Pre-existing college students list</small>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="warm-thead">
                         <tr>
                             <th style="width: 70px;">ID</th>
                             <th>Student Name</th>
@@ -89,11 +59,12 @@
                         {% for student in students %}
                         <tr>
                             <td>{{ student.id }}</td>
-                            <td class="fw-bold">{{ student.name }}</td>
-                            <td>{{ student.email }}</td>
+                            <td class="fw-bold" style="color: var(--color-text);">{{ student.name }}</td>
+                            <td class="text-muted">{{ student.email }}</td>
                             <td>
                                 {% if student.student_profile and student.student_profile.roll_number %}
-                                    <span class="badge bg-secondary font-monospace">{{ student.student_profile.roll_number }}</span>
+                                    <span class="badge font-monospace"
+                                          style="background: #e8ddd0; color: var(--color-text);">{{ student.student_profile.roll_number }}</span>
                                 {% else %}
                                     <span class="text-muted small">—</span>
                                 {% endif %}
@@ -103,15 +74,19 @@
                             <td><small class="text-muted">{{ student.student_profile.phone if student.student_profile and student.student_profile.phone else '—' }}</small></td>
                             <td>
                                 {% if student.is_active %}
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge"
+                                          style="background:#e6f4ec; color:#2d6a4f;">Active</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge"
+                                          style="background:#f0ede8; color:#7a6a57;">Inactive</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">No students found. Use "Import Students CSV" above to load student records.</td>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                No students registered yet.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -120,15 +95,17 @@
         </div>
     </div>
 
-    <!-- Examiners Table -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Examiners Directory ({{ examiners|length }})</h5>
+        <div class="warm-card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold" style="color:#2c1f10;">
+                <i class="bi bi-person-badge me-2" style="color: var(--color-accent);"></i>Examiners Directory ({{ examiners|length }})
+            </h5>
+            <small class="text-muted">Approved & pending faculty</small>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="warm-thead">
                         <tr>
                             <th style="width: 70px;">ID</th>
                             <th>Examiner Name</th>
@@ -149,22 +126,24 @@
                             <td>{{ examiner.examiner_profile.specialization if examiner.examiner_profile and examiner.examiner_profile.specialization else '—' }}</td>
                             <td>
                                 {% if examiner.is_approved %}
-                                    <span class="badge bg-success">Approved</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Approved</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if examiner.is_active %}
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge"
+                                          style="background:#e6f4ec; color:#2d6a4f;">Active</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge"
+                                          style="background:#f0ede8; color:#7a6a57;">Inactive</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">No examiners found.</td>
+                            <td colspan="7" class="text-center py-4" style="color:#7a6a57;">No examiners found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

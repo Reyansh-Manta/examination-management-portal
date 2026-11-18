@@ -6,24 +6,40 @@
 <div class="container mt-4" style="max-width: 700px;">
 
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-warning text-dark">
-            <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Reschedule Booking #{{ booking.id }}</h4>
+        <div class="warm-card-header">
+            <h4 class="mb-0 fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-clock-history me-2" style="color: var(--color-warning);"></i>Reschedule Booking #{{ booking.id }}
+            </h4>
         </div>
         <div class="card-body p-4">
 
-            <div class="bg-light p-3 rounded mb-4 border">
-                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-1"></i> Current Booking Details</h6>
-                <div class="row g-2 small">
-                    <div class="col-sm-6"><strong>Student:</strong> {{ booking.student.name }}</div>
-                    <div class="col-sm-6"><strong>Examination:</strong> {{ booking.slot.examination.name }}</div>
-                    <div class="col-sm-6"><strong>Examiner:</strong> {{ booking.slot.examiner.name }}</div>
-                    <div class="col-sm-6"><strong>Current Slot:</strong> {{ booking.slot.date }} at {{ booking.slot.time }}</div>
+            <div class="p-3 rounded-3 mb-4" style="background: #faf7f2; border: 1px solid #ebd9c8;">
+                <h6 class="fw-bold mb-3" style="color: var(--color-primary);">
+                    <i class="bi bi-info-circle me-1"></i> Current Booking Details
+                </h6>
+                <div class="row g-2 small" style="color: var(--color-text);">
+                    <div class="col-sm-6">
+                        <span style="color: #7a6a57;">Student:</span>
+                        <strong class="ms-1">{{ booking.student.name }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span style="color: #7a6a57;">Examination:</span>
+                        <strong class="ms-1">{{ booking.slot.examination.name }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span style="color: #7a6a57;">Examiner:</span>
+                        <strong class="ms-1">{{ booking.slot.examiner.name }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span style="color: #7a6a57;">Current Slot:</span>
+                        <strong class="ms-1">{{ booking.slot.date }} at {{ booking.slot.time }}</strong>
+                    </div>
                 </div>
             </div>
 
             <form method="POST">
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Select New Slot</label>
+                    <label class="form-label">Select New Slot</label>
                     <select name="slot_id" class="form-select" required>
                         <option value="">Choose an available slot...</option>
                         {% for slot in slots %}
@@ -33,17 +49,18 @@
                         {% endfor %}
                     </select>
                     {% if not slots %}
-                    <div class="form-text text-danger mt-1">
+                    <div class="mt-2 small text-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
                         No alternative slots available for this examination.
                     </div>
                     {% endif %}
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('admin_bookings') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('admin_bookings') }}" class="btn btn-warm-outline-muted">
                         <i class="bi bi-arrow-left me-1"></i> Back to Bookings
                     </a>
-                    <button type="submit" class="btn btn-primary" {% if not slots %}disabled{% endif %}>
+                    <button type="submit" class="btn btn-warm-primary px-4" {% if not slots %}disabled{% endif %}>
                         <i class="bi bi-check-lg me-1"></i> Confirm Reschedule
                     </button>
                 </div>

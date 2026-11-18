@@ -3,88 +3,106 @@
 {% block title %}My Student Profile – Exam Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-4" style="max-width: 700px;">
+<div class="container mt-4" style="max-width: 720px;">
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white p-3">
-            <h4 class="mb-0"><i class="bi bi-person-circle me-2"></i>Official Student Profile</h4>
+    <div class="card shadow-sm mb-4">
+        <div class="warm-card-header d-flex align-items-center gap-2 p-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width: 42px; height: 42px; background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-size: 1.25rem;">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div>
+                <h4 class="mb-0 fw-bold" style="color: var(--color-text);">Student Profile</h4>
+                <small class="text-muted">Manage your personal and academic information</small>
+            </div>
         </div>
+
         <div class="card-body p-4">
-            <div class="alert alert-light border small text-muted mb-4">
-                <i class="bi bi-info-circle me-1"></i> Pre-registered college records (Roll Number, Department & Year) are maintained by the administrative directory.
+            <div class="alert alert-info mb-4 d-flex align-items-center gap-2" role="alert">
+                <i class="bi bi-shield-check fs-5 text-primary"></i>
+                <div class="small">
+                    <strong>Pre-registered Record:</strong> Roll Number, Department, and Academic Year are verified and matched against the institutional student directory.
+                </div>
             </div>
 
             <form method="POST">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Full Name</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Full Name</label>
                         <input type="text"
                                name="name"
                                class="form-control"
+                               style="border-color: var(--color-border);"
                                value="{{ student.name }}"
                                required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Email Address</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Email Address</label>
                         <input type="email"
                                name="email"
                                class="form-control"
+                               style="border-color: var(--color-border);"
                                value="{{ student.email }}"
                                required>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Roll Number</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Roll Number</label>
                         <input type="text"
                                name="roll_number"
                                class="form-control font-monospace"
+                               style="border-color: var(--color-border);"
                                placeholder="e.g., 2024CS01"
                                value="{{ profile.roll_number or '' }}">
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Department</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Department</label>
                         <input type="text"
                                name="department"
                                class="form-control"
+                               style="border-color: var(--color-border);"
                                placeholder="e.g., Computer Science and Engineering"
                                value="{{ profile.department or '' }}">
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Year of Study</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Year of Study</label>
                         <input type="text"
                                name="year"
                                class="form-control"
+                               style="border-color: var(--color-border);"
                                placeholder="e.g., 3rd Year"
                                value="{{ profile.year or '' }}">
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Contact Phone</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Contact Phone</label>
                         <input type="text"
                                name="phone"
                                class="form-control"
+                               style="border-color: var(--color-border);"
                                placeholder="+91 XXXXXXXXXX"
                                value="{{ profile.phone or '' }}">
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Role</label>
+                        <label class="form-label fw-bold small" style="color: var(--color-text);">Portal Role</label>
                         <input type="text"
-                               class="form-control bg-light"
+                               class="form-control"
+                               style="background: #fdfbf7; border-color: var(--color-border); color: var(--color-muted);"
                                value="{{ student.role }}"
                                readonly>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between mt-4 pt-2 border-top">
-                    <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary">
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3" style="border-top: 1px solid var(--color-border);">
+                    <a href="{{ url_for('student_dashboard') }}" class="btn btn-warm-outline-muted">
                         <i class="bi bi-arrow-left me-1"></i> Dashboard
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-1"></i> Update Profile Details
+                    <button type="submit" class="btn btn-warm-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i> Save Changes
                     </button>
                 </div>
             </form>

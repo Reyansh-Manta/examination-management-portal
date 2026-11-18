@@ -6,14 +6,16 @@
 <div class="container mt-4" style="max-width: 650px;">
 
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add New Examination</h4>
+        <div class="warm-card-header">
+            <h4 class="mb-0 fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-plus-circle me-2" style="color: var(--color-accent);"></i>Add New Examination
+            </h4>
         </div>
         <div class="card-body p-4">
             {% if courses %}
             <form method="POST">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Examination Name</label>
+                    <label class="form-label">Examination Name</label>
                     <input type="text"
                            name="name"
                            class="form-control"
@@ -22,7 +24,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Select Course</label>
+                    <label class="form-label">Select Course</label>
                     <select name="course_id" class="form-select" required>
                         <option value="">Choose a course...</option>
                         {% for course in courses %}
@@ -31,33 +33,35 @@
                     </select>
                 </div>
 
-                <div class="border rounded p-3 bg-light mb-3">
-                    <h6 class="fw-bold text-primary mb-2"><i class="bi bi-folder-plus me-1"></i> Attach Examination Study Resource (Optional)</h6>
+                <div class="p-3 mb-3 rounded-3" style="border: 1px solid #ebd9c8; background: #faf7f2;">
+                    <h6 class="fw-bold mb-2" style="color: var(--color-primary);">
+                        <i class="bi bi-folder-plus me-1"></i> Attach Examination Study Resource (Optional)
+                    </h6>
                     <div class="mb-2">
-                        <label class="form-label small text-muted">Resource / Reference Title</label>
-                        <input type="text" name="resource_title" class="form-control form-control-sm" placeholder="e.g., Viva Preparation Question Bank & Rubric Guide">
+                        <label class="form-label small" style="color: #7a6a57;">Resource / Reference Title</label>
+                        <input type="text" name="resource_title" class="form-control form-control-sm" placeholder="e.g., Viva Preparation Question Bank &amp; Rubric Guide">
                     </div>
                     <div>
-                        <label class="form-label small text-muted">Resource Link URL</label>
+                        <label class="form-label small" style="color: #7a6a57;">Resource Link URL</label>
                         <input type="url" name="resource_url" class="form-control form-control-sm" placeholder="https://example.com/viva_prep.pdf">
                     </div>
                 </div>
 
                 <div class="d-flex justify-content-between pt-2">
-                    <a href="{{ url_for('examinations') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('examinations') }}" class="btn btn-warm-outline-muted">
                         <i class="bi bi-arrow-left me-1"></i> Back to Examinations
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-warm-primary px-4">
                         <i class="bi bi-check-lg me-1"></i> Add Examination
                     </button>
                 </div>
             </form>
             {% else %}
             <div class="text-center py-4">
-                <i class="bi bi-exclamation-circle text-warning fs-1 d-block mb-2"></i>
-                <h5>No courses found</h5>
+                <i class="bi bi-exclamation-circle fs-1 d-block mb-2" style="color: var(--color-warning);"></i>
+                <h5 class="fw-bold" style="color: var(--color-text);">No courses found</h5>
                 <p class="text-muted">You must add at least one course before creating an examination.</p>
-                <a href="{{ url_for('add_course') }}" class="btn btn-primary">
+                <a href="{{ url_for('add_course') }}" class="btn btn-warm-primary">
                     <i class="bi bi-plus-lg me-1"></i> Add Course First
                 </a>
             </div>

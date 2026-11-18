@@ -3,75 +3,77 @@
 {% block title %}Result Report – #{{ evaluation.id }} – Exam Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5" style="max-width: 850px;">
+<div class="container mt-4 mb-5" style="max-width: 860px;">
 
-    <!-- Action buttons (Hidden during print) -->
     <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
-        <a href="{{ url_for('student_results') }}" class="btn btn-outline-secondary">
+        <a href="{{ url_for('student_results') }}" class="btn btn-warm-outline-muted">
             <i class="bi bi-arrow-left me-1"></i> Back to Results
         </a>
-        <button onclick="window.print()" class="btn btn-primary">
+        <button onclick="window.print()" class="btn btn-warm-primary px-4">
             <i class="bi bi-printer me-1"></i> Print / Save as PDF
         </button>
     </div>
 
-    <!-- Official Report Card -->
-    <div class="card shadow border-0 p-4 p-md-5 bg-white">
+    <div class="card shadow-sm border-0 p-4 p-md-5 bg-white" style="border: 1px solid var(--color-border); border-radius: 12px;">
 
-        <!-- Header -->
-        <div class="text-center border-bottom pb-4 mb-4">
-            <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 56px; height: 56px;">
+        <div class="text-center pb-4 mb-4" style="border-bottom: 2px solid var(--color-border);">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                 style="width: 58px; height: 58px; background: rgba(124, 79, 42, 0.12); color: var(--color-primary);">
                 <i class="bi bi-mortarboard-fill fs-3"></i>
             </div>
-            <h2 class="fw-bold mb-1">EXAMINATION MANAGEMENT PORTAL</h2>
-            <h5 class="text-muted text-uppercase mb-0">Official Student Evaluation & Grade Report</h5>
+            <h3 class="fw-bold mb-1" style="color: var(--color-text); letter-spacing: 0.5px;">EXAMINATION MANAGEMENT PORTAL</h3>
+            <h6 class="text-uppercase fw-bold mb-0" style="color: var(--color-accent); letter-spacing: 1px;">Official Student Evaluation & Grade Report</h6>
             <div class="small text-muted mt-2">Generated On: {{ generated_at }}</div>
         </div>
 
-        <!-- Student & Examination Details -->
         <div class="row g-3 mb-4">
             <div class="col-sm-6">
-                <div class="p-3 bg-light rounded border h-100">
-                    <h6 class="text-primary fw-bold mb-2"><i class="bi bi-person me-1"></i> Student Details</h6>
-                    <div><strong>Name:</strong> {{ student.name }}</div>
-                    <div><strong>Email:</strong> {{ student.email }}</div>
-                    <div><strong>Roll No:</strong> {{ student.student_profile.roll_number if student.student_profile and student.student_profile.roll_number else 'N/A' }}</div>
-                    <div><strong>Department:</strong> {{ student.student_profile.department if student.student_profile and student.student_profile.department else 'N/A' }}</div>
+                <div class="p-3 rounded h-100" style="background: #fdfaf6; border: 1px solid var(--color-border);">
+                    <h6 class="fw-bold mb-2 pb-1" style="color: var(--color-primary); border-bottom: 1px solid #ebd9c8;">
+                        <i class="bi bi-person me-1"></i> Student Details
+                    </h6>
+                    <div class="mb-1"><strong>Name:</strong> {{ student.name }}</div>
+                    <div class="mb-1"><strong>Email:</strong> {{ student.email }}</div>
+                    <div class="mb-1"><strong>Roll No:</strong> <span class="font-monospace">{{ student.student_profile.roll_number if student.student_profile and student.student_profile.roll_number else 'N/A' }}</span></div>
+                    <div class="mb-1"><strong>Department:</strong> {{ student.student_profile.department if student.student_profile and student.student_profile.department else 'N/A' }}</div>
                     <div><strong>Year:</strong> {{ student.student_profile.year if student.student_profile and student.student_profile.year else 'N/A' }}</div>
                 </div>
             </div>
 
             <div class="col-sm-6">
-                <div class="p-3 bg-light rounded border h-100">
-                    <h6 class="text-primary fw-bold mb-2"><i class="bi bi-clipboard2-check me-1"></i> Examination Details</h6>
-                    <div><strong>Examination:</strong> {{ examination.name }}</div>
-                    <div><strong>Course:</strong> {{ examination.course.name }}</div>
-                    <div><strong>Slot Date:</strong> {{ evaluation.booking.slot.date }} at {{ evaluation.booking.slot.time }}</div>
-                    <div><strong>Examiner:</strong> {{ evaluation.examiner.name }}</div>
-                    <div><strong>Evaluation ID:</strong> #{{ evaluation.id }}</div>
+                <div class="p-3 rounded h-100" style="background: #fdfaf6; border: 1px solid var(--color-border);">
+                    <h6 class="fw-bold mb-2 pb-1" style="color: var(--color-primary); border-bottom: 1px solid #ebd9c8;">
+                        <i class="bi bi-clipboard2-check me-1"></i> Examination Details
+                    </h6>
+                    <div class="mb-1"><strong>Examination:</strong> {{ examination.name }}</div>
+                    <div class="mb-1"><strong>Course:</strong> {{ examination.course.name }}</div>
+                    <div class="mb-1"><strong>Slot Date:</strong> {{ evaluation.booking.slot.date }} at {{ evaluation.booking.slot.time }}</div>
+                    <div class="mb-1"><strong>Examiner:</strong> {{ evaluation.examiner.name }}</div>
+                    <div><strong>Evaluation ID:</strong> <span class="font-monospace">#{{ evaluation.id }}</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Rubric Breakdown -->
-        <h5 class="fw-bold mb-3"><i class="bi bi-list-check me-2"></i> Rubric-Wise Score Breakdown</h5>
+        <h5 class="fw-bold mb-3" style="color: var(--color-text);">
+            <i class="bi bi-list-check me-2" style="color: var(--color-primary);"></i> Rubric-Wise Score Breakdown
+        </h5>
         <div class="table-responsive mb-4">
-            <table class="table table-bordered align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width: 60px;">#</th>
-                        <th>Criterion / Section</th>
-                        <th style="width: 150px;" class="text-center">Max Marks</th>
-                        <th style="width: 150px;" class="text-center">Marks Awarded</th>
+            <table class="table table-bordered align-middle mb-0" style="border-color: var(--color-border);">
+                <thead>
+                    <tr style="background: #1a1207; color: #fff;">
+                        <th style="width: 60px; color: #fff;">#</th>
+                        <th style="color: #fff;">Criterion / Section</th>
+                        <th style="width: 150px; color: #fff;" class="text-center">Max Marks</th>
+                        <th style="width: 150px; color: #fff;" class="text-center">Marks Awarded</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in rubric_marks %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td class="text-muted">{{ loop.index }}</td>
                         <td>{{ item.rubric.criterion if item.rubric else 'Criteria' }}</td>
                         <td class="text-center">{{ item.rubric.marks if item.rubric else '-' }}</td>
-                        <td class="text-center fw-bold text-primary">{{ item.marks }}</td>
+                        <td class="text-center fw-bold" style="color: var(--color-primary);">{{ item.marks }}</td>
                     </tr>
                     {% else %}
                     <tr>
@@ -79,44 +81,45 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot class="table-light fw-bold">
+                <tfoot class="fw-bold" style="background: #fdfaf6;">
                     <tr>
                         <td colspan="2" class="text-end">Total Possible / Scored:</td>
                         <td class="text-center">{{ total_rubric_possible if total_rubric_possible > 0 else '-' }}</td>
-                        <td class="text-center fs-5 text-success">{{ evaluation.marks }}</td>
+                        <td class="text-center fs-5" style="color: var(--color-success);">{{ evaluation.marks }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
-        <!-- Result Summary & Remarks -->
         <div class="row g-3 mb-4">
             <div class="col-md-7">
-                <div class="p-3 border rounded h-100">
-                    <h6 class="fw-bold text-muted mb-2"><i class="bi bi-chat-quote me-1"></i> Examiner Remarks</h6>
-                    <p class="mb-0 text-dark fst-italic">"{{ evaluation.remarks or 'No specific remarks recorded.' }}"</p>
+                <div class="p-3 rounded h-100" style="border: 1px solid var(--color-border); background: #fff;">
+                    <h6 class="fw-bold mb-2" style="color: var(--color-muted);">
+                        <i class="bi bi-chat-quote me-1"></i> Examiner Remarks
+                    </h6>
+                    <p class="mb-0 fst-italic" style="color: var(--color-text);">"{{ evaluation.remarks or 'No specific remarks recorded.' }}"</p>
                 </div>
             </div>
             <div class="col-md-5">
-                <div class="p-3 border rounded h-100 bg-light text-center d-flex flex-column justify-content-center">
+                <div class="p-3 rounded h-100 text-center d-flex flex-column justify-content-center"
+                     style="border: 1px solid var(--color-border); background: #fdfaf6;">
                     <div class="small text-muted text-uppercase fw-semibold mb-1">Final Result Status</div>
-                    <h3 class="mb-0 fw-bold text-success">{{ evaluation.status }}</h3>
-                    <div class="mt-2 text-muted small">Total Marks: <span class="badge bg-primary fs-6">{{ evaluation.marks }}</span></div>
+                    <h3 class="mb-0 fw-bold" style="color: var(--color-success);">{{ evaluation.status }}</h3>
+                    <div class="mt-2 text-muted small">Total Marks: <span class="badge fs-6 px-3 py-1" style="background: var(--color-primary); color: #fff;">{{ evaluation.marks }}</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Signature Block -->
-        <div class="row mt-5 pt-4 border-top">
+        <div class="row mt-5 pt-4" style="border-top: 1px solid var(--color-border);">
             <div class="col-6 text-center">
-                <div class="border-bottom mx-auto" style="width: 180px; height: 35px;"></div>
+                <div class="mx-auto" style="width: 180px; height: 35px; border-bottom: 1.5px solid #2c1f10;"></div>
                 <div class="small text-muted mt-2">Examiner Signature</div>
-                <div class="fw-bold small">{{ evaluation.examiner.name }}</div>
+                <div class="fw-bold small" style="color: var(--color-text);">{{ evaluation.examiner.name }}</div>
             </div>
             <div class="col-6 text-center">
-                <div class="border-bottom mx-auto" style="width: 180px; height: 35px;"></div>
+                <div class="mx-auto" style="width: 180px; height: 35px; border-bottom: 1.5px solid #2c1f10;"></div>
                 <div class="small text-muted mt-2">Controller of Examinations</div>
-                <div class="fw-bold small">Official Portal Seal</div>
+                <div class="fw-bold small" style="color: var(--color-text);">Official Portal Seal</div>
             </div>
         </div>
 
@@ -132,4 +135,3 @@
     }
 </style>
 {% endblock %}
-

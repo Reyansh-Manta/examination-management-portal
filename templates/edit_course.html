@@ -6,27 +6,29 @@
 <div class="container mt-4" style="max-width: 650px;">
 
     <div class="card shadow-sm">
-        <div class="card-header bg-warning text-dark">
-            <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Course</h4>
+        <div class="warm-card-header">
+            <h4 class="mb-0 fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-pencil-square me-2" style="color: var(--color-warning);"></i>Edit Course
+            </h4>
         </div>
         <div class="card-body p-4">
             <form method="POST">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Course Name</label>
+                    <label class="form-label">Course Name</label>
                     <input type="text" name="name" class="form-control"
                            value="{{ course.name }}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Description</label>
+                    <label class="form-label">Description</label>
                     <textarea name="description" class="form-control" rows="4">{{ course.description or "" }}</textarea>
                 </div>
 
                 <div class="d-flex justify-content-between pt-2">
-                    <a href="{{ url_for('courses') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('courses') }}" class="btn btn-warm-outline-muted">
                         <i class="bi bi-arrow-left me-1"></i> Back to Courses
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-warm-primary px-4">
                         <i class="bi bi-check-lg me-1"></i> Save Changes
                     </button>
                 </div>

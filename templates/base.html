@@ -6,28 +6,522 @@
     <title>{% block title %}Examination Management Portal{% endblock %}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <style>
-        body { padding-top: 56px; }
-        .navbar-brand { font-weight: 600; letter-spacing: 0.5px; }
-        .nav-link.active { font-weight: 600; }
-        main { min-height: calc(100vh - 56px - 56px); }
-        footer { background: #212529; color: #adb5bd; padding: 1rem 0; font-size: 0.85rem; }
-        .stat-card { transition: transform 0.15s; }
-        .stat-card:hover { transform: translateY(-3px); }
+        :root {
+            
+            --color-primary: #2d6a4f;
+            --color-primary-hover: #1b4332;
+            --color-primary-light: #d8f3dc;
+
+            --bs-primary: #2d6a4f;
+            --bs-primary-rgb: 45, 106, 79;
+            --bs-link-color: #2d6a4f;
+            --bs-link-hover-color: #1b4332;
+
+            --color-text: #18181b;
+            --color-muted: #71717a;
+
+            --color-bg: #f8faf9;
+            --color-surface: #ffffff;
+            --color-border: #e0e8e4;
+
+            --color-success: #15803d;
+            --color-danger: #b91c1c;
+            --color-warning: #b45309;
+            --color-info: #0f766e;
+
+            --color-accent: #2d6a4f;
+            --color-nav-accent: #2d6a4f;
+        }
+
+        .text-primary {
+            color: #2d6a4f !important;
+        }
+
+        .bg-primary {
+            background-color: #2d6a4f !important;
+        }
+
+        .border-primary {
+            border-color: #2d6a4f !important;
+        }
+
+        .btn-outline-primary {
+            color: #2d6a4f !important;
+            border-color: #b7dfc7 !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #d8f3dc !important;
+            border-color: #95c9aa !important;
+            color: #1b4332 !important;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            padding-top: 60px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--color-text);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        a {
+            color: #2d6a4f;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #1b4332;
+            text-decoration: underline;
+        }
+
+        .site-navbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #d0e8da;
+            padding: 0.5rem 0;
+            box-shadow: 0 1px 3px rgba(45, 106, 79, 0.06);
+        }
+
+        .site-navbar .navbar-brand {
+            color: #2d6a4f !important;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+            letter-spacing: -0.01em;
+        }
+
+        .site-navbar .nav-link {
+            color: #3f3f46 !important;
+            font-weight: 500;
+            font-size: 0.88rem;
+            padding: 0.4rem 0.65rem !important;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            margin: 0 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            text-decoration: none !important;
+        }
+
+        .site-navbar .nav-link:hover {
+            color: #2d6a4f !important;
+            background-color: #f0f7f2;
+        }
+
+        .site-navbar .nav-link.active {
+            color: #2d6a4f !important;
+            background-color: #ebf5ee !important;
+            font-weight: 600;
+        }
+
+        .site-navbar .dropdown-menu {
+            background: #ffffff;
+            border: 1px solid #d0e8da;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 0.35rem;
+            margin-top: 0.35rem;
+        }
+
+        .site-navbar .dropdown-item {
+            color: #27272a;
+            font-weight: 500;
+            font-size: 0.86rem;
+            border-radius: 4px;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none !important;
+        }
+
+        .site-navbar .dropdown-item:hover {
+            background-color: #ebf5ee;
+            color: #2d6a4f;
+        }
+
+        .site-navbar .navbar-toggler {
+            border: 1px solid #e4e4e7;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .site-navbar .navbar-toggler:focus {
+            box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.15);
+        }
+
+        .btn-nav-bell {
+            color: #3f3f46;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            border: 1px solid #d0e8da;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-nav-bell:hover {
+            color: #2d6a4f;
+            background: #f0f7f2;
+            border-color: #95c9aa;
+        }
+
+        .btn-user-dropdown {
+            background: #ffffff;
+            border: 1px solid #d0e8da;
+            border-radius: 6px;
+            padding: 3px 8px 3px 4px;
+            color: #18181b;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .btn-user-dropdown:hover, .btn-user-dropdown:focus {
+            background: #f0f7f2;
+            border-color: #95c9aa;
+            color: #18181b;
+        }
+
+        .user-avatar-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: #2d6a4f;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.78rem;
+            flex-shrink: 0;
+        }
+
+        .user-name-text {
+            color: #18181b;
+            font-size: 0.84rem;
+            font-weight: 600;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .role-tag-mini {
+            color: #71717a;
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+
+        .btn-nav-outline {
+            color: #2d6a4f;
+            border: 1px solid #b7dfc7;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            text-decoration: none !important;
+            transition: all 0.15s ease;
+        }
+
+        .btn-nav-outline:hover {
+            background: #ebf5ee;
+            color: #1b4332;
+        }
+
+        main {
+            min-height: calc(100vh - 60px);
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #d4d4d8;
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.92rem;
+            color: #18181b;
+            background-color: #ffffff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #2d6a4f;
+            box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.15);
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .form-label {
+            font-weight: 500;
+            font-size: 0.84rem;
+            color: #27272a;
+            margin-bottom: 0.3rem;
+        }
+
+        .btn {
+            font-family: inherit;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.88rem;
+            transition: all 0.15s ease;
+        }
+
+        .btn-primary, .btn-warm-primary, .btn-brown {
+            background-color: #2d6a4f !important;
+            border-color: #2d6a4f !important;
+            color: #ffffff !important;
+        }
+
+        .btn-primary:hover, .btn-warm-primary:hover, .btn-brown:hover {
+            background-color: #1b4332 !important;
+            border-color: #1b4332 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-warm-outline-primary, .btn-outline-brown, .btn-outline-primary {
+            color: #2d6a4f !important;
+            border: 1px solid #b7dfc7 !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-warm-outline-primary:hover, .btn-outline-brown:hover, .btn-outline-primary:hover {
+            background-color: #ebf5ee !important;
+            border-color: #95c9aa !important;
+            color: #1b4332 !important;
+        }
+
+        .btn-warm-outline-success, .btn-outline-success {
+            color: #15803d !important;
+            border: 1px solid #bbf7d0 !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-warm-outline-success:hover, .btn-outline-success:hover {
+            background-color: #f0fdf4 !important;
+            color: #15803d !important;
+        }
+
+        .btn-warm-outline-info, .btn-outline-info {
+            color: #3f3f46 !important;
+            border: 1px solid #e4e4e7 !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-warm-outline-info:hover, .btn-outline-info:hover {
+            background-color: #f4f4f5 !important;
+            color: #18181b !important;
+        }
+
+        .btn-warm-outline-warning, .btn-outline-warning {
+            color: #b45309 !important;
+            border: 1px solid #fde68a !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-warm-outline-warning:hover, .btn-outline-warning:hover {
+            background-color: #fffbeb !important;
+            color: #b45309 !important;
+        }
+
+        .btn-warm-outline-muted, .btn-outline-secondary {
+            color: #52525b !important;
+            border: 1px solid #e4e4e7 !important;
+            background-color: #ffffff !important;
+        }
+
+        .btn-warm-outline-muted:hover, .btn-outline-secondary:hover {
+            background-color: #f4f4f5 !important;
+            color: #18181b !important;
+        }
+
+        .btn-warm-success, .btn-success {
+            background-color: #15803d !important;
+            border-color: #15803d !important;
+            color: #ffffff !important;
+        }
+
+        .btn-warm-success:hover, .btn-success:hover {
+            background-color: #166534 !important;
+            border-color: #166534 !important;
+        }
+
+        .btn-warm-danger, .btn-danger {
+            background-color: #b91c1c !important;
+            border-color: #b91c1c !important;
+            color: #ffffff !important;
+        }
+
+        .btn-warm-danger:hover, .btn-danger:hover {
+            background-color: #991b1b !important;
+            border-color: #991b1b !important;
+        }
+
+        .card {
+            border: 1px solid #e0e8e4 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(45, 106, 79, 0.05) !important;
+            overflow: hidden;
+        }
+
+        .warm-card-header, .card-header {
+            background: #f8faf9 !important;
+            border-bottom: 1px solid #e0e8e4 !important;
+            font-weight: 600;
+            padding: 0.75rem 1rem !important;
+        }
+
+        .stat-card {
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            border: 1px solid #e0e8e4 !important;
+            box-shadow: 0 1px 3px rgba(45, 106, 79, 0.04) !important;
+        }
+
+        .stat-card:hover {
+            border-color: #b7dfc7 !important;
+            box-shadow: 0 2px 6px rgba(45, 106, 79, 0.08) !important;
+        }
+
+        .stat-metric-tile {
+            background: #f8faf9;
+            border: 1px solid #e0e8e4;
+            border-radius: 6px;
+            padding: 1rem 0.75rem;
+            text-align: center;
+        }
+
+        .table {
+            color: var(--color-text);
+            margin-bottom: 0;
+        }
+
+        .warm-thead th, .table thead th {
+            background: #f0f7f2 !important;
+            color: #3f4c43 !important;
+            font-size: 0.75rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+            font-weight: 600 !important;
+            border-bottom: 1px solid #d0e8da !important;
+            padding: 0.65rem 0.85rem !important;
+        }
+
+        .table td {
+            padding: 0.75rem 0.85rem !important;
+            border-bottom: 1px solid #f0f7f2 !important;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f5faf7 !important;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.85rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            color: #18181b;
+            border: 1px solid #d0e8da;
+            background: #ffffff;
+        }
+
+        .quick-action-btn:hover {
+            background-color: #ebf5ee;
+            color: #2d6a4f;
+            border-color: #95c9aa;
+        }
+
+        .quick-action-btn i {
+            font-size: 1.35rem;
+            margin-bottom: 0.3rem;
+            color: #2d6a4f;
+        }
+
+        .flash-box {
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.9rem;
+        }
+
+        .flash-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .flash-danger {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .flash-warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .flash-info {
+            background: #f4f4f5;
+            border: 1px solid #e4e4e7;
+            color: #27272a;
+        }
+
+        .flash-secondary {
+            background: #fafafa;
+            border: 1px solid #e4e4e7;
+            color: #3f3f46;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg fixed-top site-navbar">
         <div class="container">
-            <a class="navbar-brand" href="{% if session.get('role') == 'Admin' %}{{ url_for('admin_dashboard') }}{% elif session.get('role') == 'Examiner' %}{{ url_for('examiner_dashboard') }}{% elif session.get('role') == 'Student' %}{{ url_for('student_dashboard') }}{% else %}{{ url_for('login') }}{% endif %}" title="Go to Dashboard">
-                <i class="bi bi-mortarboard-fill me-1"></i> Exam Portal
+            <a class="navbar-brand"
+               href="{% if session.get('role') == 'Admin' %}{{ url_for('admin_dashboard') }}{% elif session.get('role') == 'Examiner' %}{{ url_for('examiner_dashboard') }}{% elif session.get('role') == 'Student' %}{{ url_for('student_dashboard') }}{% else %}{{ url_for('login') }}{% endif %}">
+                <i class="bi bi-mortarboard text-primary me-1"></i>
+                <span>Exam Portal</span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -37,150 +531,118 @@
                     {% if session.get("role") == "Admin" %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
-                                <i class="bi bi-speedometer2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint in ['courses', 'add_course', 'edit_course'] %}active{% endif %}" href="{{ url_for('courses') }}">
-                                <i class="bi bi-book"></i> Courses
+                                Dashboard
                             </a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['examinations', 'add_examination', 'edit_examination', 'manage_rubrics', 'add_rubric', 'edit_rubric', 'examination_settings'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-clipboard2-check"></i> Examinations
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['courses', 'add_course', 'edit_course', 'examinations', 'add_examination', 'edit_examination', 'manage_rubrics', 'add_rubric', 'edit_rubric', 'examination_settings', 'admin_resources'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Academics
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('examinations') }}">All Examinations</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('courses') }}">Courses</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('examinations') }}">Examinations</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('add_examination') }}">Add Examination</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_resources') }}">Study Resources</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['admin_slots', 'admin_bookings'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Slots &amp; Bookings
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('admin_slots') }}">Manage Slots</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_bookings') }}">Student Bookings</a></li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'admin_slots' %}active{% endif %}" href="{{ url_for('admin_slots') }}">
-                                <i class="bi bi-calendar-week"></i> Slots
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'admin_bookings' %}active{% endif %}" href="{{ url_for('admin_bookings') }}">
-                                <i class="bi bi-journal-bookmark"></i> Bookings
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}" href="{{ url_for('admin_users') }}">
-                                <i class="bi bi-people"></i> Users
+                                Students &amp; Users
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'admin_resources' %}active{% endif %}" href="{{ url_for('admin_resources') }}">
-                                <i class="bi bi-folder2-open"></i> Resources
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['performance_analytics', 'announcements_view'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Insights
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'announcements_view' %}active{% endif %}" href="{{ url_for('announcements_view') }}">
-                                <i class="bi bi-megaphone"></i> Announcements
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'performance_analytics' %}active{% endif %}" href="{{ url_for('performance_analytics') }}">
-                                <i class="bi bi-bar-chart-line"></i> Analytics
-                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('performance_analytics') }}">Performance Analytics</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('announcements_view') }}">Announcements</a></li>
+                            </ul>
                         </li>
 
                     {% elif session.get("role") == "Examiner" %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'examiner_dashboard' %}active{% endif %}" href="{{ url_for('examiner_dashboard') }}">
-                                <i class="bi bi-speedometer2"></i> Dashboard
+                                Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'examiner_examinations' %}active{% endif %}" href="{{ url_for('examiner_examinations') }}">
-                                <i class="bi bi-clipboard2-check"></i> My Exams
+                                My Exams
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint in ['examiner_slots', 'edit_examiner_slot'] %}active{% endif %}" href="{{ url_for('examiner_slots') }}">
-                                <i class="bi bi-calendar-week"></i> Slots
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['examiner_slots', 'edit_examiner_slot', 'examiner_bookings', 'evaluate_student', 'examiner_availability'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Slots &amp; Bookings
                             </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('examiner_slots') }}">Manage Slots</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('examiner_bookings') }}">Bookings &amp; Grading</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('examiner_availability') }}">My Availability</a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint in ['examiner_bookings', 'evaluate_student'] %}active{% endif %}" href="{{ url_for('examiner_bookings') }}">
-                                <i class="bi bi-journal-bookmark"></i> Bookings
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['examiner_history', 'performance_analytics'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Records
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'examiner_availability' %}active{% endif %}" href="{{ url_for('examiner_availability') }}">
-                                <i class="bi bi-calendar-x"></i> Availability
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'examiner_history' %}active{% endif %}" href="{{ url_for('examiner_history') }}">
-                                <i class="bi bi-clock-history"></i> My History
-                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('examiner_history') }}">Grading History</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('performance_analytics') }}">Performance Analytics</a></li>
+                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'announcements_view' %}active{% endif %}" href="{{ url_for('announcements_view') }}">
-                                <i class="bi bi-megaphone"></i> News
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'performance_analytics' %}active{% endif %}" href="{{ url_for('performance_analytics') }}">
-                                <i class="bi bi-bar-chart-line"></i> Analytics
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'examiner_profile' %}active{% endif %}" href="{{ url_for('examiner_profile') }}">
-                                <i class="bi bi-person-circle"></i> Profile
+                                News
                             </a>
                         </li>
 
                     {% elif session.get("role") == "Student" %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}" href="{{ url_for('student_dashboard') }}">
-                                <i class="bi bi-speedometer2"></i> Dashboard
+                                Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'student_calendar' %}active{% endif %}" href="{{ url_for('student_calendar') }}">
-                                <i class="bi bi-calendar3"></i> Calendar
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint in ['student_examinations', 'student_examination_slots'] %}active{% endif %}" href="{{ url_for('student_examinations') }}">
-                                <i class="bi bi-clipboard2-check"></i> Exams
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'student_bookings' %}active{% endif %}" href="{{ url_for('student_bookings') }}">
-                                <i class="bi bi-journal-bookmark"></i> Bookings
+                                Calendar
                             </a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['student_history', 'student_upcoming', 'student_results'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-graph-up"></i> Records
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['student_examinations', 'student_examination_slots', 'student_bookings', 'student_upcoming'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Examinations
                             </a>
                             <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('student_examinations') }}">Browse Exams</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('student_bookings') }}">My Bookings</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('student_upcoming') }}">Upcoming Exams</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.endpoint in ['student_results', 'student_history', 'student_resources', 'performance_analytics'] %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                                Academics
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('student_results') }}">Results &amp; Scorecards</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('student_history') }}">History</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('student_results') }}">Results & Reports</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('student_resources') }}">Study Resources</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('performance_analytics') }}">Performance Analytics</a></li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'student_resources' %}active{% endif %}" href="{{ url_for('student_resources') }}">
-                                <i class="bi bi-folder2-open"></i> Resources
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'announcements_view' %}active{% endif %}" href="{{ url_for('announcements_view') }}">
-                                <i class="bi bi-megaphone"></i> News
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'performance_analytics' %}active{% endif %}" href="{{ url_for('performance_analytics') }}">
-                                <i class="bi bi-bar-chart-line"></i> Analytics
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'student_profile' %}active{% endif %}" href="{{ url_for('student_profile') }}">
-                                <i class="bi bi-person-circle"></i> Profile
+                                News
                             </a>
                         </li>
 
@@ -188,8 +650,9 @@
                 </ul>
 
                 {% if session.get("user_id") %}
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="{{ url_for('notifications_view') }}" class="btn btn-outline-light btn-sm position-relative me-1" title="Notification Centre">
+                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0 mt-3 mt-lg-0">
+                        
+                        <a href="{{ url_for('notifications_view') }}" class="btn-nav-bell position-relative" title="Notifications">
                             <i class="bi bi-bell"></i>
                             {% if unread_notifications_count and unread_notifications_count > 0 %}
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
@@ -197,49 +660,89 @@
                             </span>
                             {% endif %}
                         </a>
-                        <span class="text-light small">
-                            <i class="bi bi-person-fill me-1"></i>{{ session.get("user_name") }}
-                            <span class="badge bg-secondary ms-1">{{ session.get("role") }}</span>
-                        </span>
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </a>
+
+                        <div class="dropdown">
+                            <button class="btn btn-user-dropdown d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="user-avatar-circle">
+                                    {{ session.get("user_name", "U")[0] | upper }}
+                                </span>
+                                <div class="d-flex flex-column text-start">
+                                    <span class="user-name-text">{{ session.get("user_name") }}</span>
+                                    <span class="role-tag-mini">{{ session.get("role") }}</span>
+                                </div>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li class="dropdown-header">
+                                    <div class="fw-semibold text-dark">{{ session.get("user_name") }}</div>
+                                    <div class="small text-muted">{{ session.get("role") }} Account</div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% if session.get("role") == "Student" %}
+                                <li><a class="dropdown-item" href="{{ url_for('student_profile') }}">My Profile</a></li>
+                                {% elif session.get("role") == "Examiner" %}
+                                <li><a class="dropdown-item" href="{{ url_for('examiner_profile') }}">My Profile</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('notifications_view') }}">Notifications</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('performance_analytics') }}">Performance Analytics</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Sign Out</a></li>
+                            </ul>
+                        </div>
                     </div>
                 {% else %}
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-sm">Login</a>
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Register</a>
+                    <div class="d-flex gap-2 ms-auto flex-shrink-0 mt-3 mt-lg-0">
+                        <a href="{{ url_for('login') }}" class="btn-nav-outline">Sign In</a>
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm px-3">Register</a>
                     </div>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <!-- Flash messages -->
     <div class="container mt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'secondary' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="flash-box flash-{{ category if category in ['success', 'danger', 'warning', 'info'] else 'secondary' }} mb-2 alert-dismissible fade show" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle text-success"></i>
+                        {% elif category == 'danger' %}
+                            <i class="bi bi-x-circle text-danger"></i>
+                        {% elif category == 'warning' %}
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle text-secondary"></i>
+                        {% endif %}
+                        <span class="flex-grow-1">{{ message }}</span>
+                        <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
     </div>
 
-    <!-- Main Content -->
     <main class="pb-4">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="text-center">
-        <div class="container">
-            &copy; 2026 Examination Management Portal
-        </div>
-    </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            setTimeout(function() {
+                var autoDismissAlerts = document.querySelectorAll('.flash-success, .flash-info');
+                autoDismissAlerts.forEach(function(alertEl) {
+                    var alert = bootstrap.Alert.getOrCreateInstance(alertEl);
+                    if (alert) {
+                        alert.close();
+                    }
+                });
+            }, 6000);
+        });
+    </script>
 </body>
 </html>

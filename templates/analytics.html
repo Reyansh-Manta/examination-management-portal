@@ -7,64 +7,71 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-bar-chart-line me-2"></i>Student Performance Analytics</h2>
+            <h2 class="fw-bold mb-1" style="color: var(--color-text);">
+                <i class="bi bi-bar-chart-line me-2" style="color: var(--color-primary);"></i>Student Performance Analytics
+            </h2>
             <p class="text-muted mb-0">Overview of student grading metrics, class averages, score ranges, and examination trends.</p>
         </div>
-        <span class="badge bg-primary fs-6 p-2">Role: {{ role }}</span>
+        <span class="badge px-3 py-2" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-weight: 700; font-size: 0.85rem;">
+            <i class="bi bi-shield-lock me-1"></i> {{ role }} View
+        </span>
     </div>
 
-    <!-- Summary KPI Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-primary h-100">
+            <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title mb-1 opacity-75">Class Average Score</h6>
-                    <h2 class="mb-0 fw-bold">{{ avg_marks }}</h2>
-                    <small class="opacity-75">Out of 100 possible</small>
+                    <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Class Average</div>
+                    <h2 class="mb-0 fw-bold text-dark">{{ avg_marks }}</h2>
+                    <small class="text-muted">Out of 100 max</small>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-success h-100">
+            <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title mb-1 opacity-75">Highest Score</h6>
-                    <h2 class="mb-0 fw-bold">{{ highest_marks }}</h2>
-                    <small class="opacity-75">Top student achievement</small>
+                    <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Highest Score</div>
+                    <h2 class="mb-0 fw-bold text-dark">{{ highest_marks }}</h2>
+                    <small class="text-muted">Top mark attained</small>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-warning h-100">
+            <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title mb-1 opacity-75">Lowest Score</h6>
-                    <h2 class="mb-0 fw-bold">{{ lowest_marks }}</h2>
-                    <small class="opacity-75">Minimum score recorded</small>
+                    <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Lowest Score</div>
+                    <h2 class="mb-0 fw-bold text-dark">{{ lowest_marks }}</h2>
+                    <small class="text-muted">Minimum recorded</small>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="card stat-card text-white bg-secondary h-100">
+            <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title mb-1 opacity-75">Evaluations Completed</h6>
-                    <h2 class="mb-0 fw-bold">{{ total_evaluations }}</h2>
-                    <small class="opacity-75">Total graded examinations</small>
+                    <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Evaluations Done</div>
+                    <h2 class="mb-0 fw-bold text-dark">{{ total_evaluations }}</h2>
+                    <small class="text-muted">Assessments finished</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Examination Performance Breakdown -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Performance Breakdown by Examination</h5>
+        <div class="warm-card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-table me-2" style="color: var(--color-primary);"></i>Performance Breakdown by Examination
+            </span>
+            <span class="badge" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-weight: 700;">
+                {{ exam_stats|length }} active courses
+            </span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="warm-thead">
                         <tr>
                             <th>Examination</th>
                             <th>Course</th>
@@ -81,24 +88,32 @@
                     <tbody>
                         {% for item in exam_stats %}
                         <tr>
-                            <td class="fw-semibold">{{ item.examination.name }}</td>
-                            <td>{{ item.examination.course.name }}</td>
-                            <td class="text-center"><span class="badge bg-secondary">{{ item.attempts }}</span></td>
-                            <td class="text-center fw-bold text-primary">{{ item.avg }}</td>
-                            <td class="text-center text-success fw-bold">{{ item.high }}</td>
-                            <td class="text-center text-danger fw-bold">{{ item.low }}</td>
+                            <td class="fw-semibold" style="color: var(--color-text);">{{ item.examination.name }}</td>
+                            <td>
+                                <span class="badge" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary);">
+                                    {{ item.examination.course.name if item.examination.course else 'General' }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill" style="background: #e8ddd0; color: var(--color-text); font-weight: 700;">
+                                    {{ item.attempts }}
+                                </span>
+                            </td>
+                            <td class="text-center fw-bold" style="color: var(--color-primary);">{{ item.avg }}</td>
+                            <td class="text-center fw-bold" style="color: var(--color-success);">{{ item.high }}</td>
+                            <td class="text-center fw-bold" style="color: var(--color-danger);">{{ item.low }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-1 small">
-                                    <span class="badge bg-success" title="Grade A (>=85)">A: {{ item.grades['A'] }}</span>
-                                    <span class="badge bg-primary" title="Grade B (70-84)">B: {{ item.grades['B'] }}</span>
-                                    <span class="badge bg-info text-dark" title="Grade C (50-69)">C: {{ item.grades['C'] }}</span>
-                                    <span class="badge bg-warning text-dark" title="Grade D (40-49)">D: {{ item.grades['D'] }}</span>
-                                    <span class="badge bg-danger" title="Grade F (<40)">F: {{ item.grades['F'] }}</span>
+                                    <span class="badge" style="background: #15803d;" title="Grade A (>=85)">A: {{ item.grades['A'] }}</span>
+                                    <span class="badge" style="background: #27272a;" title="Grade B (70-84)">B: {{ item.grades['B'] }}</span>
+                                    <span class="badge" style="background: #52525b; color: #fff;" title="Grade C (50-69)">C: {{ item.grades['C'] }}</span>
+                                    <span class="badge" style="background: #b45309; color: #fff;" title="Grade D (40-49)">D: {{ item.grades['D'] }}</span>
+                                    <span class="badge" style="background: #b91c1c;" title="Grade F (<40)">F: {{ item.grades['F'] }}</span>
                                 </div>
                             </td>
                             {% if session.get('role') == 'Admin' %}
                             <td class="text-center">
-                                <a href="{{ url_for('examination_grade_analysis', examination_id=item.examination.id) }}" class="btn btn-sm btn-outline-primary">
+                                <a href="{{ url_for('examination_grade_analysis', examination_id=item.examination.id) }}" class="btn btn-warm-outline-primary btn-sm">
                                     <i class="bi bi-pie-chart me-1"></i> Analysis
                                 </a>
                             </td>
@@ -106,7 +121,10 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">No examinations evaluated yet.</td>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-bar-chart fs-1 d-block mb-2" style="color: var(--color-muted); opacity: 0.5;"></i>
+                                No examinations evaluated yet.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -117,4 +135,3 @@
 
 </div>
 {% endblock %}
-

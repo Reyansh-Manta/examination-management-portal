@@ -7,30 +7,38 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-folder2-open me-2"></i>Study Resources & Course Materials</h2>
+            <h2 class="fw-bold mb-1" style="color: var(--color-text);">
+                <i class="bi bi-folder2-open me-2" style="color: var(--color-primary);"></i>Study Resources & Course Materials
+            </h2>
             <p class="text-muted mb-0">Access approved reference links, syllabus notes, guidelines, and preparation documents.</p>
         </div>
     </div>
 
-    <!-- Filter by Course / Exam -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0"><i class="bi bi-book me-1"></i> Active Courses</h6>
+                <div class="warm-card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color: var(--color-text);">
+                        <i class="bi bi-book me-2" style="color: var(--color-primary);"></i>Active Courses
+                    </span>
+                    <span class="badge" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-weight: 600;">
+                        {{ courses|length }} Courses
+                    </span>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
                         {% for course in courses %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3" style="border-color: var(--color-border);">
                             <div>
-                                <div class="fw-semibold">{{ course.name }}</div>
-                                <small class="text-muted">{{ course.description or "No description" }}</small>
+                                <div class="fw-bold" style="color: var(--color-text);">{{ course.name }}</div>
+                                <small class="text-muted">{{ course.description or "No description provided" }}</small>
                             </div>
-                            <span class="badge bg-secondary rounded-pill">{{ course.resources|length }} resources</span>
+                            <span class="badge rounded-pill" style="background: rgba(200, 150, 62, 0.2); color: var(--color-accent); font-weight: 700;">
+                                {{ course.resources|length }} resource{{ 's' if course.resources|length != 1 else '' }}
+                            </span>
                         </li>
                         {% else %}
-                        <li class="list-group-item text-muted">No courses available.</li>
+                        <li class="list-group-item text-muted py-3">No courses available.</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -39,21 +47,28 @@
 
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-info text-dark">
-                    <h6 class="mb-0"><i class="bi bi-clipboard2-check me-1"></i> Examination Material Index</h6>
+                <div class="warm-card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color: var(--color-text);">
+                        <i class="bi bi-clipboard2-check me-2" style="color: var(--color-accent);"></i>Examination Material Index
+                    </span>
+                    <span class="badge" style="background: rgba(200, 150, 62, 0.15); color: var(--color-accent); font-weight: 600;">
+                        {{ examinations|length }} Exams
+                    </span>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
                         {% for exam in examinations %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3" style="border-color: var(--color-border);">
                             <div>
-                                <div class="fw-semibold">{{ exam.name }}</div>
-                                <small class="text-muted">Course: {{ exam.course.name }}</small>
+                                <div class="fw-bold" style="color: var(--color-text);">{{ exam.name }}</div>
+                                <small class="text-muted">Course: {{ exam.course.name if exam.course else 'General' }}</small>
                             </div>
-                            <span class="badge bg-secondary rounded-pill">{{ exam.resources|length }} files</span>
+                            <span class="badge rounded-pill" style="background: rgba(29, 95, 138, 0.15); color: var(--color-info); font-weight: 700;">
+                                {{ exam.resources|length }} file{{ 's' if exam.resources|length != 1 else '' }}
+                            </span>
                         </li>
                         {% else %}
-                        <li class="list-group-item text-muted">No examinations scheduled.</li>
+                        <li class="list-group-item text-muted py-3">No examinations scheduled.</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -61,26 +76,32 @@
         </div>
     </div>
 
-    <!-- Available Resource Items -->
-    <h4 class="mb-3"><i class="bi bi-collection me-2"></i>All Available Study Resources</h4>
+    <h4 class="mb-3 fw-bold" style="color: var(--color-text);">
+        <i class="bi bi-collection me-2" style="color: var(--color-primary);"></i>All Available Study Resources
+    </h4>
+
     {% if resources %}
     <div class="row g-3">
         {% for res in resources %}
         <div class="col-md-6">
-            <div class="card shadow-sm h-100 border-start border-4 border-primary">
-                <div class="card-body">
+            <div class="card shadow-sm h-100">
+                <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title fw-bold text-dark mb-0">{{ res.title }}</h5>
+                        <h5 class="fw-bold mb-0" style="color: var(--color-text);">{{ res.title }}</h5>
                         {% if res.examination %}
-                            <span class="badge bg-warning text-dark">{{ res.examination.name }}</span>
+                            <span class="badge" style="background: rgba(200, 150, 62, 0.18); color: var(--color-accent); font-weight: 700;">
+                                {{ res.examination.name }}
+                            </span>
                         {% elif res.course %}
-                            <span class="badge bg-primary">{{ res.course.name }}</span>
+                            <span class="badge" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-weight: 700;">
+                                {{ res.course.name }}
+                            </span>
                         {% endif %}
                     </div>
-                    <p class="card-text text-muted small mb-3">{{ res.description or "No supplementary description provided." }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted"><i class="bi bi-calendar me-1"></i>{{ res.created_at }}</small>
-                        <a href="{{ res.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <p class="text-muted small mb-3">{{ res.description or "No supplementary description provided." }}</p>
+                    <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid #f2e9de;">
+                        <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ res.created_at }}</small>
+                        <a href="{{ res.url }}" target="_blank" class="btn btn-warm-outline-primary btn-sm px-3">
                             <i class="bi bi-box-arrow-up-right me-1"></i> Open Resource
                         </a>
                     </div>
@@ -92,13 +113,12 @@
     {% else %}
     <div class="card shadow-sm text-center py-5">
         <div class="card-body">
-            <i class="bi bi-folder-x text-muted fs-1 d-block mb-2"></i>
-            <h5>No resources uploaded yet.</h5>
-            <p class="text-muted mb-0">Your instructors or administrator will link study notes and syllabus guidelines here.</p>
+            <i class="bi bi-folder-x fs-1 d-block mb-2" style="color: var(--color-muted); opacity: 0.5;"></i>
+            <h5 class="fw-semibold text-muted">No resources uploaded yet</h5>
+            <p class="text-muted small mb-0">Your instructors or administrators will link study notes and syllabus guidelines here.</p>
         </div>
     </div>
     {% endif %}
 
 </div>
 {% endblock %}
-

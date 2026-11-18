@@ -1,39 +1,98 @@
 {% extends "base.html" %}
 
-{% block title %}Bookings – Exam Portal{% endblock %}
+{% block title %}Student Viva Bookings – Examiner Portal{% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
 
-    <h2>Booked Students</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--color-text);">
+                <i class="bi bi-journal-bookmark me-2" style="color: var(--color-primary);"></i>Student Viva Bookings
+            </h2>
+            <p class="text-muted mb-0">Students currently booked and awaiting viva examination & evaluation.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('examiner_history') }}" class="btn btn-warm-outline-muted">
+                <i class="bi bi-clock-history me-1"></i> Evaluation History
+            </a>
+            <a href="{{ url_for('examiner_slots') }}" class="btn btn-warm-primary">
+                <i class="bi bi-calendar-plus me-1"></i> Manage Slots
+            </a>
+        </div>
+    </div>
 
-    <table class="table table-bordered">
-        <tr>
-            <th>Student Name</th>
-            <th>Examination</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Action</th>
-        </tr>
-
-        {% for booking in bookings %}
-        <tr>
-            <td>{{ booking.student.name }}</td>
-            <td>{{ booking.slot.examination.name }}</td>
-            <td>{{ booking.slot.date }}</td>
-            <td>{{ booking.slot.time }}</td>
-            <td>
-                <a href="{{ url_for('evaluate_student', booking_id=booking.id) }}"
-                   class="btn btn-primary btn-sm">
-                    Evaluate
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-
-    </table>
+    <div class="card shadow-sm">
+        <div class="warm-card-header d-flex justify-content-between align-items-center p-3">
+            <span class="fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-person-lines-fill me-2" style="color: var(--color-primary);"></i>Scheduled Viva Candidates
+            </span>
+            <span class="badge" style="background: rgba(124, 79, 42, 0.12); color: var(--color-primary); font-weight: 700;">
+                {{ bookings|length }} student{{ 's' if bookings|length != 1 else '' }} awaiting viva
+            </span>
+        </div>
+        <div class="card-body p-0">
+            {% if bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="warm-thead">
+                        <tr>
+                            <th style="width: 80px;">Booking</th>
+                            <th>Student Details</th>
+                            <th>Examination & Course</th>
+                            <th>Date & Time</th>
+                            <th class="text-center" style="width: 170px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td class="fw-bold text-muted">#{{ booking.id }}</td>
+                            <td>
+                                <div class="fw-bold" style="color: var(--color-text);">{{ booking.student.name }}</div>
+                                <div class="small text-muted">
+                                    {{ booking.student.email }}
+                                    {% if booking.student.student_profile and booking.student.student_profile.roll_number %}
+                                        &bull; <span class="font-monospace fw-semibold">{{ booking.student.student_profile.roll_number }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold" style="color: var(--color-text);">{{ booking.slot.examination.name }}</div>
+                                <small class="text-muted">{{ booking.slot.examination.course.name if booking.slot.examination.course else 'General Course' }}</small>
+                            </td>
+                            <td>
+                                <div><i class="bi bi-calendar3 me-1" style="color: var(--color-primary);"></i>{{ booking.slot.date }}</div>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ booking.slot.time }}</small>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('evaluate_student', booking_id=booking.id) }}"
+                                   class="btn btn-warm-primary btn-sm px-3">
+                                    <i class="bi bi-pencil-square me-1"></i> Evaluate
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-check2-circle fs-1 d-block mb-2" style="color: var(--color-success); opacity: 0.7;"></i>
+                <h5 class="fw-bold" style="color: var(--color-text);">All Caught Up!</h5>
+                <p class="text-muted small mb-3">No students are currently awaiting viva evaluation for your scheduled slots.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('examiner_slots') }}" class="btn btn-warm-outline-primary btn-sm">
+                        <i class="bi bi-calendar-plus me-1"></i> Create More Slots
+                    </a>
+                    <a href="{{ url_for('examiner_history') }}" class="btn btn-warm-outline-muted btn-sm">
+                        <i class="bi bi-clock-history me-1"></i> View Past Evaluations
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
 </div>
-
 {% endblock %}

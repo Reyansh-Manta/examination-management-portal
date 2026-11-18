@@ -1,70 +1,90 @@
-
 {% extends "base.html" %}
 
-{% block title %}Available Slots – Exam Portal{% endblock %}
+{% block title %}Available Slots – {{ examination.name }}{% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
 
-    <h2>{{ examination.name }}</h2>
-
-    <p>Available examination slots are listed below.</p>
-
-    {% if available_slots %}
-
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-
-            <thead>
-                <tr>
-                    <th>Slot ID</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Available Seats</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for item in available_slots %}
-                <tr>
-                    <td>{{ item.slot.id }}</td>
-                    <td>{{ item.slot.date }}</td>
-                    <td>{{ item.slot.time }}</td>
-                    <td>{{ item.remaining_seats }}</td>
-                    <td>
-                        <form method="POST"
-                              action="{{ url_for(
-                                  'student_book_slot',
-                                  slot_id=item.slot.id
-                              ) }}">
-
-                            <button type="submit"
-                                    class="btn btn-success btn-sm">
-                                Book Slot
-                            </button>
-
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-        </table>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a href="{{ url_for('student_examinations') }}" class="btn btn-warm-outline-muted btn-sm">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h2 class="fw-bold mb-0" style="color: var(--color-text);">{{ examination.name }}</h2>
+            </div>
+            <p class="text-muted mb-0">Select and confirm your preferred viva examination time slot.</p>
+        </div>
     </div>
 
-    {% else %}
-
-        <p>No available slots for this examination.</p>
-
-    {% endif %}
-
-    <a href="{{ url_for('student_examinations') }}"
-       class="btn btn-secondary">
-        Back to Examinations
-    </a>
+    <div class="card shadow-sm mb-4">
+        <div class="warm-card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-clock-history me-2" style="color: var(--color-primary);"></i>Available Slots Schedule
+            </span>
+            <span class="badge" style="background: rgba(45, 106, 79, 0.15); color: var(--color-success); font-weight: 700;">
+                {{ available_slots | length }} slot{{ 's' if available_slots|length != 1 else '' }} available
+            </span>
+        </div>
+        <div class="card-body p-0">
+            {% if available_slots %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="warm-thead">
+                        <tr>
+                            <th style="width: 80px;">Slot ID</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Examiner</th>
+                            <th class="text-center">Available Seats</th>
+                            <th class="text-center" style="width: 160px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in available_slots %}
+                        <tr>
+                            <td class="fw-bold" style="color: var(--color-muted);">#{{ item.slot.id }}</td>
+                            <td>
+                                <i class="bi bi-calendar3 me-1" style="color: var(--color-primary);"></i>
+                                <span class="fw-semibold">{{ item.slot.date }}</span>
+                            </td>
+                            <td>
+                                <i class="bi bi-clock me-1 text-muted"></i>
+                                <span>{{ item.slot.time }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ item.slot.examiner.name if item.slot.examiner else 'Assigned Examiner' }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge" style="background: rgba(45, 106, 79, 0.15); color: var(--color-success); font-weight: 700; font-size: 0.85rem;">
+                                    {{ item.remaining_seats }} seat{{ 's' if item.remaining_seats != 1 else '' }} left
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <form method="POST" action="{{ url_for('student_book_slot', slot_id=item.slot.id) }}">
+                                    <button type="submit" class="btn btn-warm-success btn-sm px-3"
+                                            onclick="return confirm('Confirm booking this slot on {{ item.slot.date }} at {{ item.slot.time }}?');">
+                                        <i class="bi bi-check-circle me-1"></i> Book Slot
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x fs-1 d-block mb-2" style="color: var(--color-muted); opacity: 0.5;"></i>
+                <h5 class="fw-semibold text-muted">No available slots</h5>
+                <p class="text-muted small mb-3">All slots for this examination are either fully booked or not yet open.</p>
+                <a href="{{ url_for('student_examinations') }}" class="btn btn-warm-outline-primary btn-sm">
+                    Back to Examinations
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
 </div>
-
 {% endblock %}

@@ -3,90 +3,152 @@
 {% block title %}Evaluate Student – Exam Portal{% endblock %}
 
 {% block content %}
+<style>
 
-<div class="container mt-4">
+.rubric-row {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.15s ease;
+}
+.rubric-row:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.rubric-criterion {
+    flex: 1;
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.95rem;
+}
+.rubric-max {
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    min-width: 90px;
+    text-align: right;
+}
+.rubric-score-input {
+    width: 90px;
+    min-width: 90px;
+    border: 1.5px solid var(--color-accent) !important;
+    text-align: center;
+    font-weight: 700;
+    color: var(--color-text);
+    font-size: 1rem;
+}
+.rubric-score-input:focus {
+    box-shadow: 0 0 0 3px rgba(200, 150, 62, 0.2) !important;
+}
+</style>
 
-    <h2>Evaluate Student</h2>
+<div class="container mt-4" style="max-width: 780px;">
 
-    <hr>
+    <div class="card shadow-sm">
+        <div class="warm-card-header">
+            <h4 class="mb-0 fw-bold" style="color: var(--color-text);">
+                <i class="bi bi-clipboard2-check me-2" style="color: var(--color-accent);"></i>Evaluate Student Performance
+            </h4>
+        </div>
+        <div class="card-body p-4">
 
-    <p>
-        <strong>Student:</strong>
-        {{ booking.student.name }}
-    </p>
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                    <div class="p-3 rounded-3" style="background: #faf7f2; border: 1px solid #ebd9c8;">
+                        <div class="small fw-bold text-uppercase mb-1" style="color: var(--color-muted); letter-spacing: 0.5px;">Student Candidate</div>
+                        <div class="fw-bold fs-6" style="color: var(--color-text);">{{ booking.student.name }}</div>
+                        <small class="text-muted">{{ booking.student.email }}</small>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-3 rounded-3" style="background: #faf7f2; border: 1px solid #ebd9c8;">
+                        <div class="small fw-bold text-uppercase mb-1" style="color: var(--color-muted); letter-spacing: 0.5px;">Examination</div>
+                        <div class="fw-bold fs-6" style="color: var(--color-text);">{{ booking.slot.examination.name }}</div>
+                        <small class="text-muted">{{ booking.slot.examination.course.name if booking.slot.examination.course else 'General Course' }}</small>
+                    </div>
+                </div>
+            </div>
 
-    <p>
-        <strong>Examination:</strong>
-        {{ booking.slot.examination.name }}
-    </p>
+            <h5 class="mb-3 fw-bold text-dark">
+                <i class="bi bi-list-check me-1 text-primary"></i> Examination Rubric Scoring
+            </h5>
 
-    <h4 class="mt-4">Examination Rubric</h4>
+            <form method="POST">
 
-    <form method="POST">
-
-        <table class="table table-bordered">
-
-            <thead>
-                <tr>
-                    <th>Criterion</th>
-                    <th>Maximum Marks</th>
-                    <th>Marks Awarded</th>
-                </tr>
-            </thead>
-
-            <tbody>
+                <div class="d-flex px-2 mb-1 small fw-bold" style="color: #7a6a57;">
+                    <span style="flex: 1;">Criterion</span>
+                    <span style="min-width: 90px; text-align: right; margin-right: 1rem;">Max Marks</span>
+                    <span style="width: 90px; text-align: center;">Score</span>
+                </div>
 
                 {% for rubric in rubrics %}
-
-                <tr>
-
-                    <td>{{ rubric.criterion }}</td>
-
-                    <td>{{ rubric.marks }}</td>
-
-                    <td>
-
-                        <input type="number"
-                               name="rubric_{{ rubric.id }}"
-                               class="form-control"
-                               min="0"
-                               max="{{ rubric.marks }}"
-                               value="{{ marks_by_rubric.get(rubric.id, '') }}"
-                               required>
-
-                    </td>
-
-                </tr>
-
+                <div class="rubric-row">
+                    <span class="rubric-criterion">{{ rubric.criterion }}</span>
+                    <span class="rubric-max">/ {{ rubric.marks }} pts</span>
+                    <input type="number"
+                           name="rubric_{{ rubric.id }}"
+                           class="form-control rubric-score-input"
+                           min="0"
+                           max="{{ rubric.marks }}"
+                           value="{{ marks_by_rubric.get(rubric.id, '') }}"
+                           required>
+                </div>
                 {% endfor %}
 
-            </tbody>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 rounded mb-3" style="background: #f9f5ef; border: 1.5px dashed var(--color-accent);">
+                    <span class="fw-bold small text-uppercase" style="color: var(--color-text);">
+                        <i class="bi bi-calculator me-1" style="color: var(--color-accent);"></i> Total Calculated Marks:
+                    </span>
+                    <span class="fs-5 fw-bold" style="color: var(--color-primary);" id="totalScoreLive">—</span>
+                </div>
 
-        </table>
+                <div class="mb-3 mt-4">
+                    <label class="form-label">Remarks</label>
+                    <textarea name="remarks"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Additional comments or feedback for the student...">{{ evaluation.remarks if evaluation else '' }}</textarea>
+                </div>
 
-        <div class="mb-3">
+                <div class="d-flex justify-content-between pt-2">
+                    <a href="{{ url_for('examiner_bookings') }}" class="btn btn-outline-secondary"
+                       style="border-color: #7a6a57; color: #7a6a57; border-radius: 8px;">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-brown">
+                        <i class="bi bi-check-lg me-1"></i> Submit Evaluation
+                    </button>
+                </div>
 
-            <label class="form-label">
-                Remarks
-            </label>
-
-            <textarea name="remarks"
-                      class="form-control"
-                      rows="4">{{ evaluation.remarks if evaluation else '' }}</textarea>
-
+            </form>
         </div>
-
-        <button type="submit" class="btn btn-primary">
-            Submit Evaluation
-        </button>
-
-        <a href="{{ url_for('examiner_bookings') }}"
-           class="btn btn-secondary">
-            Cancel
-        </a>
-
-    </form>
+    </div>
 
 </div>
 
+<script>
+    function calculateLiveTotal() {
+        let total = 0;
+        let maxTotal = 0;
+        document.querySelectorAll('.rubric-score-input').forEach(function(inp) {
+            const val = parseFloat(inp.value) || 0;
+            const max = parseFloat(inp.getAttribute('max')) || 0;
+            total += val;
+            maxTotal += max;
+        });
+        const liveEl = document.getElementById('totalScoreLive');
+        if (liveEl) {
+            liveEl.innerText = total + ' / ' + maxTotal + ' pts';
+        }
+    }
+    document.querySelectorAll('.rubric-score-input').forEach(function(inp) {
+        inp.addEventListener('input', calculateLiveTotal);
+    });
+    calculateLiveTotal();
+</script>
 {% endblock %}

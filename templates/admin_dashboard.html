@@ -5,161 +5,168 @@
 {% block content %}
 <div class="container mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="mb-0 fw-bold"><i class="bi bi-speedometer2 me-2 text-primary"></i>Admin Operations Dashboard</h2>
-            <p class="text-muted mb-0">Welcome back, <strong>{{ session["user_name"] }}</strong>! System health, portal statistics, and examiner analytics.</p>
+            <h2 class="mb-1 fw-bold text-dark">
+                Admin Operations Dashboard
+            </h2>
+            <p class="text-muted mb-0 small">Welcome back, <strong>{{ session["user_name"] }}</strong>. System metrics, examinations overview, and examiner performance.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('performance_analytics') }}" class="btn btn-outline-primary">
-                <i class="bi bi-bar-chart-line me-1"></i> Class Analytics
+            <a href="{{ url_for('performance_analytics') }}" class="btn btn-outline-secondary btn-sm">
+                Class Analytics
             </a>
-            <a href="{{ url_for('announcements_view') }}" class="btn btn-outline-success">
-                <i class="bi bi-megaphone me-1"></i> Announcements
+            <a href="{{ url_for('announcements_view') }}" class="btn btn-outline-secondary btn-sm">
+                Announcements
             </a>
         </div>
     </div>
 
-    <!-- Portal Statistics Cards -->
+    <div class="card mb-4">
+        <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-auto fw-semibold small text-muted">
+                    Quick Actions:
+                </div>
+                <div class="col-6 col-sm-3 col-md-auto">
+                    <a href="{{ url_for('add_examination') }}" class="btn btn-primary btn-sm w-100">
+                        + Add Examination
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 col-md-auto">
+                    <a href="{{ url_for('add_course') }}" class="btn btn-outline-secondary btn-sm w-100">
+                        + Add Course
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 col-md-auto">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary btn-sm w-100">
+                        Manage Users
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 col-md-auto">
+                    <a href="{{ url_for('admin_slots') }}" class="btn btn-outline-secondary btn-sm w-100">
+                        Manage Slots
+                    </a>
+                </div>
+                <div class="col-6 col-sm-3 col-md-auto ms-md-auto">
+                    <a href="{{ url_for('announcements_view') }}" class="btn btn-outline-secondary btn-sm w-100">
+                        Post Notice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3 mb-4">
 
         <div class="col-md-4 col-sm-6">
-            <div class="card stat-card text-white bg-primary h-100 shadow-sm border-0">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Total Courses</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_courses }}</h2>
-                    </div>
-                    <i class="bi bi-book fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('courses') }}" class="text-white small">Manage Courses &rarr;</a>
+            <div class="card stat-card h-100" style="border-left: 3px solid #2d6a4f;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Total Courses</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_courses }}</div>
+                    <a href="{{ url_for('courses') }}" class="small text-muted text-decoration-none">Manage courses &rarr;</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 col-sm-6">
-            <div class="card stat-card text-white bg-success h-100 shadow-sm border-0">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Total Examinations</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_examinations }}</h2>
-                    </div>
-                    <i class="bi bi-clipboard2-check fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('examinations') }}" class="text-white small">Manage Exams &rarr;</a>
+            <div class="card stat-card h-100" style="border-left: 3px solid #40916c;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Total Examinations</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_examinations }}</div>
+                    <a href="{{ url_for('examinations') }}" class="small text-muted text-decoration-none">Manage exams &rarr;</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 col-sm-6">
-            <div class="card stat-card text-white bg-info h-100 shadow-sm border-0">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Total Examiners</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_examiners }}</h2>
-                    </div>
-                    <i class="bi bi-person-badge fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('admin_users') }}" class="text-white small">Manage Users &rarr;</a>
+            <div class="card stat-card h-100" style="border-left: 3px solid #74c69d;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Total Examiners</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_examiners }}</div>
+                    <a href="{{ url_for('admin_users') }}" class="small text-muted text-decoration-none">Manage users &rarr;</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 col-sm-6">
-            <div class="card stat-card text-white bg-secondary h-100 shadow-sm border-0">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Total Enrolled Students</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_students }}</h2>
-                    </div>
-                    <i class="bi bi-people fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('admin_users') }}" class="text-white small">Import / Manage &rarr;</a>
+            <div class="card stat-card h-100" style="border-left: 3px solid #b45309;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Enrolled Students</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_students }}</div>
+                    <a href="{{ url_for('admin_users') }}" class="small text-muted text-decoration-none">Import / Manage &rarr;</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 col-sm-6">
-            <div class="card stat-card text-white bg-warning h-100 shadow-sm border-0">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Total Viva Slots</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_slots }}</h2>
-                    </div>
-                    <i class="bi bi-calendar-week fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('admin_slots') }}" class="text-white small">Manage Slots &rarr;</a>
+            <div class="card stat-card h-100" style="border-left: 3px solid #0f766e;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Total Viva Slots</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_slots }}</div>
+                    <a href="{{ url_for('admin_slots') }}" class="small text-muted text-decoration-none">Manage slots &rarr;</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4 col-sm-6">
-            <div class="card stat-card text-white bg-danger h-100 shadow-sm border-0">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-1 opacity-75">Total Bookings</h6>
-                        <h2 class="mb-0 fw-bold">{{ total_bookings }}</h2>
-                    </div>
-                    <i class="bi bi-journal-bookmark fs-1 opacity-50"></i>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="{{ url_for('admin_bookings') }}" class="text-white small">Manage Bookings &rarr;</a>
+            <div class="card stat-card h-100" style="border-left: 3px solid #9a3412;">
+                <div class="card-body p-3">
+                    <div class="text-muted small fw-medium text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">Total Bookings</div>
+                    <div class="h2 fw-bold text-dark mb-1">{{ total_bookings }}</div>
+                    <a href="{{ url_for('admin_bookings') }}" class="small text-muted text-decoration-none">Manage bookings &rarr;</a>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- Examiner Status Tracking & Average Grading Visual Progress (Requirement 6) -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Examiner Grading Progress & Performance Tracking</h5>
-            <small class="text-muted">Monitors average scores awarded and slot capacity utilization</small>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center py-2 px-3">
+            <h6 class="mb-0 fw-semibold text-dark">
+                Examiner Grading Progress &amp; Performance
+            </h6>
+            <small class="text-muted">Average marks and evaluation count</small>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="warm-thead">
                         <tr>
                             <th>Examiner</th>
                             <th>Email Address</th>
                             <th class="text-center">Slots Created</th>
-                            <th class="text-center">Evaluations Completed</th>
-                            <th style="min-width: 250px;">Average Grading Indicator</th>
+                            <th class="text-center">Evaluations Done</th>
+                            <th style="min-width: 200px;">Grading Indicator</th>
                             <th class="text-center">Avg Score</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in examiner_stats %}
                         <tr>
-                            <td class="fw-bold"><i class="bi bi-person-fill text-primary me-1"></i>{{ item.examiner.name }}</td>
-                            <td>{{ item.examiner.email }}</td>
-                            <td class="text-center"><span class="badge bg-secondary">{{ item.total_slots }}</span></td>
-                            <td class="text-center"><span class="badge bg-primary">{{ item.total_evals }}</span></td>
+                            <td class="fw-medium text-dark">{{ item.examiner.name }}</td>
+                            <td class="text-muted small">{{ item.examiner.email }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">{{ item.total_slots }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">{{ item.total_evals }}</span>
+                            </td>
                             <td>
                                 {% if item.avg_grade is not none %}
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="progress flex-grow-1" style="height: 14px;">
-                                            <div class="progress-bar {% if item.avg_grade >= 80 %}bg-success{% elif item.avg_grade >= 60 %}bg-primary{% elif item.avg_grade >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}"
-                                                 role="progressbar"
-                                                 style="width: {{ item.avg_grade }}%;">
-                                            </div>
+                                    <div class="progress" style="height: 6px; background: #d0e8da; border-radius: 4px;">
+                                        <div class="progress-bar"
+                                             role="progressbar"
+                                             style="width: {{ item.avg_grade }}%; border-radius: 4px; background: #2d6a4f;">
                                         </div>
                                     </div>
                                 {% else %}
-                                    <span class="text-muted small fst-italic">No grading data yet</span>
+                                    <span class="text-muted small fst-italic">No grading data</span>
                                 {% endif %}
                             </td>
-                            <td class="text-center fw-bold">
+                            <td class="text-center fw-semibold">
                                 {% if item.avg_grade is not none %}
-                                    <span class="badge {% if item.avg_grade >= 80 %}bg-success{% elif item.avg_grade >= 60 %}bg-primary{% else %}bg-secondary{% endif %} fs-6">
-                                        {{ item.avg_grade }}
-                                    </span>
+                                    <span>{{ item.avg_grade }}</span>
                                 {% else %}
                                     <span class="text-muted">—</span>
                                 {% endif %}
@@ -176,29 +183,29 @@
         </div>
     </div>
 
-    <!-- Pending Approvals Alert -->
     {% if pending_examiners %}
-    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4 py-2 px-3 small" role="alert">
+        <i class="bi bi-exclamation-triangle text-warning"></i>
         <div>
-            <strong>{{ pending_examiners | length }} examiner(s) pending approval.</strong> Review and approve below.
+            <strong>{{ pending_examiners | length }} examiner(s) pending approval.</strong> Review and approve credentials below.
         </div>
     </div>
     {% endif %}
 
-    <!-- Pending Examiner Approvals -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-person-check me-2"></i>Pending Examiner Approvals</h5>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center py-2 px-3">
+            <h6 class="mb-0 fw-semibold text-dark">
+                Pending Examiner Approvals
+            </h6>
             {% if pending_examiners %}
-                <span class="badge bg-warning text-dark">{{ pending_examiners | length }} pending</span>
+                <span class="badge bg-dark text-white">{{ pending_examiners | length }} pending</span>
             {% endif %}
         </div>
         <div class="card-body p-0">
             {% if pending_examiners %}
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="warm-thead">
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
@@ -209,13 +216,13 @@
                     <tbody>
                         {% for examiner in pending_examiners %}
                         <tr>
-                            <td>{{ examiner.id }}</td>
-                            <td>{{ examiner.name }}</td>
-                            <td>{{ examiner.email }}</td>
+                            <td class="text-muted small">{{ examiner.id }}</td>
+                            <td class="fw-medium text-dark">{{ examiner.name }}</td>
+                            <td class="text-muted small">{{ examiner.email }}</td>
                             <td>
                                 <form method="POST" action="{{ url_for('approve_examiner', user_id=examiner.id) }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-success btn-sm">
-                                        <i class="bi bi-check-lg"></i> Approve Examiner
+                                    <button type="submit" class="btn btn-outline-dark btn-sm">
+                                        Approve
                                     </button>
                                 </form>
                             </td>
@@ -225,7 +232,9 @@
                 </table>
             </div>
             {% else %}
-            <div class="p-3 text-muted"><i class="bi bi-check-circle me-1"></i>No pending approvals.</div>
+            <div class="p-3 text-center text-muted small">
+                No pending examiner approvals.
+            </div>
             {% endif %}
         </div>
     </div>
